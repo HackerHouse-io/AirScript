@@ -1,0 +1,635 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		B316EBF32F5DEFCA00E6B91A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B316EBDB2F5DEFC900E6B91A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B316EBE22F5DEFC900E6B91A;
+			remoteInfo = AirScript;
+		};
+		B316EBFD2F5DEFCA00E6B91A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B316EBDB2F5DEFC900E6B91A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B316EBE22F5DEFC900E6B91A;
+			remoteInfo = AirScript;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		B316EBE32F5DEFC900E6B91A /* AirScript.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AirScript.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B316EBF22F5DEFCA00E6B91A /* AirScriptTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AirScriptTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B316EBFC2F5DEFCA00E6B91A /* AirScriptUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AirScriptUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		B316EBE52F5DEFC900E6B91A /* AirScript */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AirScript;
+			sourceTree = "<group>";
+		};
+		B316EBF52F5DEFCA00E6B91A /* AirScriptTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AirScriptTests;
+			sourceTree = "<group>";
+		};
+		B316EBFF2F5DEFCA00E6B91A /* AirScriptUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AirScriptUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B316EBE02F5DEFC900E6B91A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B316EBEF2F5DEFCA00E6B91A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B316EBF92F5DEFCA00E6B91A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B316EBDA2F5DEFC900E6B91A = {
+			isa = PBXGroup;
+			children = (
+				B316EBE52F5DEFC900E6B91A /* AirScript */,
+				B316EBF52F5DEFCA00E6B91A /* AirScriptTests */,
+				B316EBFF2F5DEFCA00E6B91A /* AirScriptUITests */,
+				B316EBE42F5DEFC900E6B91A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B316EBE42F5DEFC900E6B91A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B316EBE32F5DEFC900E6B91A /* AirScript.app */,
+				B316EBF22F5DEFCA00E6B91A /* AirScriptTests.xctest */,
+				B316EBFC2F5DEFCA00E6B91A /* AirScriptUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B316EBE22F5DEFC900E6B91A /* AirScript */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B316EC062F5DEFCA00E6B91A /* Build configuration list for PBXNativeTarget "AirScript" */;
+			buildPhases = (
+				B316EBDF2F5DEFC900E6B91A /* Sources */,
+				B316EBE02F5DEFC900E6B91A /* Frameworks */,
+				B316EBE12F5DEFC900E6B91A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B316EBE52F5DEFC900E6B91A /* AirScript */,
+			);
+			name = AirScript;
+			packageProductDependencies = (
+				B316EC142F5DF00000E6B91A /* WhisperKit */,
+				B316EC172F5DF00000E6B91A /* Sparkle */,
+				B316EC182F5DF00000E6B91A /* KeyboardShortcuts */,
+			);
+			productName = AirScript;
+			productReference = B316EBE32F5DEFC900E6B91A /* AirScript.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B316EBF12F5DEFCA00E6B91A /* AirScriptTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B316EC092F5DEFCA00E6B91A /* Build configuration list for PBXNativeTarget "AirScriptTests" */;
+			buildPhases = (
+				B316EBEE2F5DEFCA00E6B91A /* Sources */,
+				B316EBEF2F5DEFCA00E6B91A /* Frameworks */,
+				B316EBF02F5DEFCA00E6B91A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B316EBF42F5DEFCA00E6B91A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B316EBF52F5DEFCA00E6B91A /* AirScriptTests */,
+			);
+			name = AirScriptTests;
+			packageProductDependencies = (
+			);
+			productName = AirScriptTests;
+			productReference = B316EBF22F5DEFCA00E6B91A /* AirScriptTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		B316EBFB2F5DEFCA00E6B91A /* AirScriptUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B316EC0C2F5DEFCA00E6B91A /* Build configuration list for PBXNativeTarget "AirScriptUITests" */;
+			buildPhases = (
+				B316EBF82F5DEFCA00E6B91A /* Sources */,
+				B316EBF92F5DEFCA00E6B91A /* Frameworks */,
+				B316EBFA2F5DEFCA00E6B91A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B316EBFE2F5DEFCA00E6B91A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B316EBFF2F5DEFCA00E6B91A /* AirScriptUITests */,
+			);
+			name = AirScriptUITests;
+			packageProductDependencies = (
+			);
+			productName = AirScriptUITests;
+			productReference = B316EBFC2F5DEFCA00E6B91A /* AirScriptUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B316EBDB2F5DEFC900E6B91A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					B316EBE22F5DEFC900E6B91A = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					B316EBF12F5DEFCA00E6B91A = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = B316EBE22F5DEFC900E6B91A;
+					};
+					B316EBFB2F5DEFCA00E6B91A = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = B316EBE22F5DEFC900E6B91A;
+					};
+				};
+			};
+			buildConfigurationList = B316EBDE2F5DEFC900E6B91A /* Build configuration list for PBXProject "AirScript" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B316EBDA2F5DEFC900E6B91A;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B316EC102F5DF00000E6B91A /* XCRemoteSwiftPackageReference "WhisperKit" */,
+				B316EC122F5DF00000E6B91A /* XCRemoteSwiftPackageReference "Sparkle" */,
+				B316EC132F5DF00000E6B91A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = B316EBE42F5DEFC900E6B91A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B316EBE22F5DEFC900E6B91A /* AirScript */,
+				B316EBF12F5DEFCA00E6B91A /* AirScriptTests */,
+				B316EBFB2F5DEFCA00E6B91A /* AirScriptUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B316EBE12F5DEFC900E6B91A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B316EBF02F5DEFCA00E6B91A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B316EBFA2F5DEFCA00E6B91A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B316EBDF2F5DEFC900E6B91A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B316EBEE2F5DEFCA00E6B91A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B316EBF82F5DEFCA00E6B91A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B316EBF42F5DEFCA00E6B91A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B316EBE22F5DEFC900E6B91A /* AirScript */;
+			targetProxy = B316EBF32F5DEFCA00E6B91A /* PBXContainerItemProxy */;
+		};
+		B316EBFE2F5DEFCA00E6B91A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B316EBE22F5DEFC900E6B91A /* AirScript */;
+			targetProxy = B316EBFD2F5DEFCA00E6B91A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B316EC102F5DF00000E6B91A /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/argmaxinc/WhisperKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.0;
+			};
+		};
+		B316EC122F5DF00000E6B91A /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
+		B316EC132F5DF00000E6B91A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B316EC142F5DF00000E6B91A /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B316EC102F5DF00000E6B91A /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
+		};
+		B316EC172F5DF00000E6B91A /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B316EC122F5DF00000E6B91A /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+		B316EC182F5DF00000E6B91A /* KeyboardShortcuts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B316EC132F5DF00000E6B91A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			productName = KeyboardShortcuts;
+		};
+/* End XCSwiftPackageProductDependency section */
+
+/* Begin XCBuildConfiguration section */
+		B316EC042F5DEFCA00E6B91A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 53W7TGPEV6;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B316EC052F5DEFCA00E6B91A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 53W7TGPEV6;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		B316EC072F5DEFCA00E6B91A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AirScript/AirScript.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 53W7TGPEV6;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "AirScript uses AppleScript for desktop automation.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "AirScript needs microphone access for voice dictation.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.hackerhouse.AirScript;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		B316EC082F5DEFCA00E6B91A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AirScript/AirScript.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 53W7TGPEV6;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "AirScript uses AppleScript for desktop automation.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "AirScript needs microphone access for voice dictation.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.hackerhouse.AirScript;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		B316EC0A2F5DEFCA00E6B91A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 53W7TGPEV6;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.hackerhouse.AirScriptTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AirScript.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AirScript";
+			};
+			name = Debug;
+		};
+		B316EC0B2F5DEFCA00E6B91A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 53W7TGPEV6;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.hackerhouse.AirScriptTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AirScript.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AirScript";
+			};
+			name = Release;
+		};
+		B316EC0D2F5DEFCA00E6B91A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 53W7TGPEV6;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.hackerhouse.AirScriptUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = AirScript;
+			};
+			name = Debug;
+		};
+		B316EC0E2F5DEFCA00E6B91A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 53W7TGPEV6;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.hackerhouse.AirScriptUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = AirScript;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B316EBDE2F5DEFC900E6B91A /* Build configuration list for PBXProject "AirScript" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B316EC042F5DEFCA00E6B91A /* Debug */,
+				B316EC052F5DEFCA00E6B91A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B316EC062F5DEFCA00E6B91A /* Build configuration list for PBXNativeTarget "AirScript" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B316EC072F5DEFCA00E6B91A /* Debug */,
+				B316EC082F5DEFCA00E6B91A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B316EC092F5DEFCA00E6B91A /* Build configuration list for PBXNativeTarget "AirScriptTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B316EC0A2F5DEFCA00E6B91A /* Debug */,
+				B316EC0B2F5DEFCA00E6B91A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B316EC0C2F5DEFCA00E6B91A /* Build configuration list for PBXNativeTarget "AirScriptUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B316EC0D2F5DEFCA00E6B91A /* Debug */,
+				B316EC0E2F5DEFCA00E6B91A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B316EBDB2F5DEFC900E6B91A /* Project object */;
+}
