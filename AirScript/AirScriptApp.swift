@@ -31,6 +31,16 @@ struct AirScriptApp: App {
     }()
 
     var body: some Scene {
+        // Main app window
+        WindowGroup {
+            MainAppView()
+                .environment(appState)
+                .modelContainer(sharedModelContainer)
+        }
+        .defaultSize(width: 900, height: 620)
+        .windowResizability(.contentMinSize)
+
+        // Menu bar icon
         MenuBarExtra {
             MenuBarView()
                 .environment(appState)
@@ -41,12 +51,14 @@ struct AirScriptApp: App {
         }
         .menuBarExtraStyle(.window)
 
+        // Settings (Cmd+,)
         Settings {
             SettingsView()
                 .environment(appState)
                 .modelContainer(sharedModelContainer)
         }
 
+        // Onboarding
         Window("AirScript Setup", id: "onboarding") {
             OnboardingView()
                 .environment(appState)
