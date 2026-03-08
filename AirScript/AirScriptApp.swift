@@ -36,9 +36,37 @@ struct AirScriptApp: App {
                 .environment(appState)
                 .modelContainer(sharedModelContainer)
         } label: {
-            Image(systemName: appState.isRecording ? "mic.fill" : "mic")
+            Image(systemName: menuBarIcon)
                 .symbolRenderingMode(.hierarchical)
         }
         .menuBarExtraStyle(.window)
+
+        Settings {
+            SettingsView()
+                .environment(appState)
+                .modelContainer(sharedModelContainer)
+        }
+
+        Window("AirScript Setup", id: "onboarding") {
+            OnboardingView()
+                .environment(appState)
+                .modelContainer(sharedModelContainer)
+        }
+        .windowResizability(.contentSize)
+        .defaultLaunchBehavior(.suppressed)
+    }
+
+    private var menuBarIcon: String {
+        if appState.isRecording { return "mic.fill" }
+        if appState.isProcessing { return "brain" }
+        return "mic"
+    }
+
+    init() {
+        // Ensure app support directories exist
+        try? URL.ensureDirectoryExists(URL.airScriptSupport)
+        try? URL.ensureDirectoryExists(URL.whisperModels)
+        try? URL.ensureDirectoryExists(URL.llmModels)
+        try? URL.ensureDirectoryExists(URL.audioRecordings)
     }
 }

@@ -2,6 +2,11 @@ import SwiftUI
 
 struct MenuBarView: View {
     @Environment(AppState.self) private var appState
+    @State private var showingRecordingTest = false
+    @State private var showingModelManager = false
+    @State private var showingHistory = false
+    @State private var showingNotes = false
+    @State private var showingSettings = false
 
     var body: some View {
         VStack(spacing: 12) {
@@ -9,10 +14,30 @@ struct MenuBarView: View {
             Divider()
             statusSection
             Divider()
+            navigationButtons
+            Divider()
             quitButton
         }
         .padding()
         .frame(width: 280)
+        .sheet(isPresented: $showingRecordingTest) {
+            RecordingTestView()
+                .environment(appState)
+        }
+        .sheet(isPresented: $showingModelManager) {
+            ModelManagerView()
+                .environment(appState)
+        }
+        .sheet(isPresented: $showingHistory) {
+            HistoryView()
+        }
+        .sheet(isPresented: $showingNotes) {
+            NotesView()
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+                .environment(appState)
+        }
     }
 
     private var header: some View {
@@ -56,6 +81,34 @@ struct MenuBarView: View {
                 }
             }
         }
+    }
+
+    private var navigationButtons: some View {
+        VStack(spacing: 4) {
+            menuButton("Recording Test", icon: "waveform.circle") {
+                showingRecordingTest = true
+            }
+            menuButton("Model Manager", icon: "arrow.down.circle") {
+                showingModelManager = true
+            }
+            menuButton("History", icon: "clock") {
+                showingHistory = true
+            }
+            menuButton("Notes", icon: "note.text") {
+                showingNotes = true
+            }
+            menuButton("Settings", icon: "gear") {
+                showingSettings = true
+            }
+        }
+    }
+
+    private func menuButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: icon)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.borderless)
     }
 
     private func statusRow(icon: String, label: String, status: Bool) -> some View {

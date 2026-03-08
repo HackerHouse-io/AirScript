@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B316EFBC2F5E0C6300E6B91A /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = B316EC142F5DF00000E6B91A /* WhisperKit */; };
+		B316EFBD2F5E0C6300E6B91A /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = B316EC172F5DF00000E6B91A /* Sparkle */; };
+		B316EFBE2F5E0C6300E6B91A /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = B316EC182F5DF00000E6B91A /* KeyboardShortcuts */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		B316EBF32F5DEFCA00E6B91A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +58,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B316EFBE2F5E0C6300E6B91A /* KeyboardShortcuts in Frameworks */,
+				B316EFBD2F5E0C6300E6B91A /* Sparkle in Frameworks */,
+				B316EFBC2F5E0C6300E6B91A /* WhisperKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -275,51 +284,6 @@
 			targetProxy = B316EBFD2F5DEFCA00E6B91A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		B316EC102F5DF00000E6B91A /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/argmaxinc/WhisperKit.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.9.0;
-			};
-		};
-		B316EC122F5DF00000E6B91A /* XCRemoteSwiftPackageReference "Sparkle" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.6.0;
-			};
-		};
-		B316EC132F5DF00000E6B91A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		B316EC142F5DF00000E6B91A /* WhisperKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B316EC102F5DF00000E6B91A /* XCRemoteSwiftPackageReference "WhisperKit" */;
-			productName = WhisperKit;
-		};
-		B316EC172F5DF00000E6B91A /* Sparkle */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B316EC122F5DF00000E6B91A /* XCRemoteSwiftPackageReference "Sparkle" */;
-			productName = Sparkle;
-		};
-		B316EC182F5DF00000E6B91A /* KeyboardShortcuts */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B316EC132F5DF00000E6B91A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
-			productName = KeyboardShortcuts;
-		};
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		B316EC042F5DEFCA00E6B91A /* Debug */ = {
@@ -630,6 +594,51 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B316EC102F5DF00000E6B91A /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/argmaxinc/WhisperKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.0;
+			};
+		};
+		B316EC122F5DF00000E6B91A /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
+		B316EC132F5DF00000E6B91A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B316EC142F5DF00000E6B91A /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B316EC102F5DF00000E6B91A /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
+		};
+		B316EC172F5DF00000E6B91A /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B316EC122F5DF00000E6B91A /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+		B316EC182F5DF00000E6B91A /* KeyboardShortcuts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B316EC132F5DF00000E6B91A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			productName = KeyboardShortcuts;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B316EBDB2F5DEFC900E6B91A /* Project object */;
 }
