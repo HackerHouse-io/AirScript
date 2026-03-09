@@ -46,6 +46,9 @@ struct FlowBarView: View {
             }
 
             if state == .command {
+                Image(systemName: "terminal.fill")
+                    .font(.caption)
+                    .foregroundStyle(.blue)
                 Text("Command")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.white)

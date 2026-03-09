@@ -12,9 +12,14 @@ final class HotkeyManager {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var isFnHeld = false
+    private var isCommandMode = false
     private var lastFnReleaseTime: Date?
     private var isHandsFreeActive = false
     private let doubleTapInterval = Constants.Defaults.doubleTapInterval
+
+    /// Short delay before starting push-to-talk, to allow fn+Ctrl to be detected as command mode
+    private var pttDelayTask: DispatchWorkItem?
+    private let pttDelay: TimeInterval = 0.15
 
     private let logger = Logger.hotkey
 
@@ -64,6 +69,8 @@ final class HotkeyManager {
             eventTap = nil
             runLoopSource = nil
         }
+        pttDelayTask?.cancel()
+        pttDelayTask = nil
         logger.info("Hotkey manager stopped")
     }
 
@@ -87,7 +94,10 @@ final class HotkeyManager {
                 if isFnHeld || isHandsFreeActive {
                     logger.debug("Cancel via Escape")
                     isFnHeld = false
+                    isCommandMode = false
                     isHandsFreeActive = false
+                    pttDelayTask?.cancel()
+                    pttDelayTask = nil
                     onCancel?()
                     return nil // swallow the event
                 }
@@ -99,6 +109,7 @@ final class HotkeyManager {
         if type == .flagsChanged {
             let flags = event.flags
             let fnPressed = flags.contains(.maskSecondaryFn)
+            let ctrlPressed = flags.contains(.maskControl)
 
             if fnPressed && !isFnHeld {
                 // fn pressed down
@@ -112,26 +123,45 @@ final class HotkeyManager {
                     isHandsFreeActive.toggle()
                     logger.debug("Hands-free toggled: \(self.isHandsFreeActive)")
                     onHandsFreeToggle?()
+                } else if ctrlPressed {
+                    // fn+Ctrl pressed together — command mode immediately
+                    isCommandMode = true
+                    logger.debug("Command mode activated")
+                    onCommandModeStart?()
                 } else {
-                    // Single press: push-to-talk
-                    logger.debug("Push-to-talk started")
-                    onPushToTalkStart?()
+                    // Defer push-to-talk start to allow Ctrl to arrive
+                    let task = DispatchWorkItem { [weak self] in
+                        guard let self, self.isFnHeld, !self.isCommandMode else { return }
+                        self.logger.debug("Push-to-talk started")
+                        self.onPushToTalkStart?()
+                    }
+                    pttDelayTask = task
+                    DispatchQueue.main.asyncAfter(deadline: .now() + pttDelay, execute: task)
                 }
+            } else if fnPressed && isFnHeld && ctrlPressed && !isCommandMode {
+                // Ctrl pressed while fn already held — upgrade to command mode
+                pttDelayTask?.cancel()
+                pttDelayTask = nil
+                isCommandMode = true
+                logger.debug("Command mode activated (upgraded from PTT)")
+                // Cancel any in-progress PTT and switch to command mode
+                onCancel?()
+                onCommandModeStart?()
             } else if !fnPressed && isFnHeld {
                 // fn released
                 isFnHeld = false
+                pttDelayTask?.cancel()
+                pttDelayTask = nil
                 lastFnReleaseTime = Date()
 
-                if !isHandsFreeActive {
+                if isCommandMode {
+                    isCommandMode = false
+                    logger.debug("Command mode ended")
+                    onCommandModeEnd?()
+                } else if !isHandsFreeActive {
                     logger.debug("Push-to-talk ended")
                     onPushToTalkEnd?()
                 }
-            }
-
-            // Check for fn+Ctrl (command mode)
-            if fnPressed && flags.contains(.maskControl) {
-                logger.debug("Command mode activated")
-                onCommandModeStart?()
             }
         }
 

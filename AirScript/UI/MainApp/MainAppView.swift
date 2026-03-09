@@ -2,16 +2,20 @@ import SwiftUI
 
 enum SidebarItem: String, CaseIterable, Identifiable {
     case home = "Home"
+    case history = "History"
+    case commands = "Commands"
     case dictionary = "Dictionary"
     case snippets = "Snippets"
     case style = "Style"
     case scratchpad = "Scratchpad"
 
-    var id: String { rawValue }
+    var id: Self { self }
 
     var icon: String {
         switch self {
         case .home: "house.fill"
+        case .history: "clock.arrow.circlepath"
+        case .commands: "command"
         case .dictionary: "textformat.abc"
         case .snippets: "text.insert"
         case .style: "paintbrush.fill"
@@ -27,12 +31,12 @@ struct MainAppView: View {
     @State private var showingSettings = false
 
     var body: some View {
-        NavigationSplitView {
+        HStack(spacing: 0) {
             sidebar
-        } detail: {
+            Divider()
             detailView
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .navigationSplitViewStyle(.balanced)
         .frame(minWidth: 820, minHeight: 560)
         .sheet(isPresented: $showingSettings) {
             AppSettingsView()
@@ -86,12 +90,14 @@ struct MainAppView: View {
             .padding(.bottom, 20)
 
             // Nav items
-            List(SidebarItem.allCases, selection: $selectedItem) { item in
-                Label(item.rawValue, systemImage: item.icon)
-                    .font(.body)
-                    .padding(.vertical, 2)
+            VStack(spacing: 2) {
+                ForEach(SidebarItem.allCases) { item in
+                    sidebarButton(for: item)
+                }
             }
-            .listStyle(.sidebar)
+            .padding(.horizontal, 12)
+
+            Spacer()
 
             Divider()
 
@@ -130,7 +136,25 @@ struct MainAppView: View {
             }
             .padding(.vertical, 12)
         }
-        .frame(minWidth: 200, idealWidth: 220, maxWidth: 260)
+        .frame(width: 220)
+        .background(Color(nsColor: .windowBackgroundColor))
+    }
+
+    private func sidebarButton(for item: SidebarItem) -> some View {
+        let isSelected = selectedItem == item
+        return Button {
+            selectedItem = item
+        } label: {
+            Label(item.rawValue, systemImage: item.icon)
+                .font(.body)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
+                .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Detail
@@ -141,6 +165,10 @@ struct MainAppView: View {
         case .home:
             HomePage()
                 .environment(appState)
+        case .history:
+            HistoryView()
+        case .commands:
+            CommandsPage()
         case .dictionary:
             DictionaryPage()
         case .snippets:

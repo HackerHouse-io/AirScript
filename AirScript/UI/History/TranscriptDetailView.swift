@@ -1,8 +1,12 @@
 import SwiftUI
+import SwiftData
 
 struct TranscriptDetailView: View {
     let transcript: Transcript
+    @Environment(\.modelContext) private var modelContext
     @State private var showRawText = false
+    @State private var showDeleteConfirmation = false
+    var onDelete: (() -> Void)?
 
     var body: some View {
         ScrollView {
@@ -65,6 +69,22 @@ struct TranscriptDetailView: View {
                         }
                     }
                     .buttonStyle(.bordered)
+
+                    Spacer()
+
+                    Button("Delete", role: .destructive) {
+                        showDeleteConfirmation = true
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .alert("Delete Transcript", isPresented: $showDeleteConfirmation) {
+                    Button("Delete", role: .destructive) {
+                        modelContext.delete(transcript)
+                        onDelete?()
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("This transcript will be permanently deleted.")
                 }
             }
             .padding()

@@ -273,6 +273,12 @@ final class AppState {
                 self?.startDictation(mode: .command)
             }
         }
+
+        hotkeyManager.onCommandModeEnd = { [weak self] in
+            Task { @MainActor in
+                self?.stopDictation()
+            }
+        }
     }
 
     @MainActor

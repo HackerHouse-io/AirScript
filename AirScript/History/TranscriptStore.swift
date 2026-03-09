@@ -58,4 +58,9 @@ final class TranscriptStore {
         transcript.isArchived = false
         transcript.archivedAt = nil
     }
+
+    func delete(_ transcript: Transcript, in context: ModelContext) {
+        context.delete(transcript)
+        logger.info("Transcript deleted: \(transcript.text.prefix(50))")
+    }
 }

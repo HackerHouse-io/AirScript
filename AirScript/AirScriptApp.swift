@@ -17,6 +17,8 @@ struct AirScriptApp: App {
             LLMModelRecord.self,
             CorrectionLog.self,
             ProductivityStat.self,
+            CustomAppAlias.self,
+            CustomVoiceCommand.self,
         ])
         let modelConfiguration = ModelConfiguration(
             schema: schema,

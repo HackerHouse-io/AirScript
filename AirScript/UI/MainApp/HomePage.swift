@@ -3,6 +3,7 @@ import SwiftData
 
 struct HomePage: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.modelContext) private var modelContext
     @Query(
         filter: #Predicate<Transcript> { !$0.isArchived },
         sort: \Transcript.createdAt,
@@ -195,6 +196,10 @@ struct HomePage: View {
             Button("Copy") {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(transcript.text, forType: .string)
+            }
+            Divider()
+            Button("Delete", role: .destructive) {
+                modelContext.delete(transcript)
             }
         }
     }
