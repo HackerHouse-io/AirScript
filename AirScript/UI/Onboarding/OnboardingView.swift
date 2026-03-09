@@ -10,6 +10,7 @@ enum OnboardingStep: Int, CaseIterable {
 
 struct OnboardingView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
     @State private var currentStep: OnboardingStep = .welcome
 
     var body: some View {
@@ -61,6 +62,7 @@ struct OnboardingView: View {
                 Button(currentStep == .done ? "Get Started" : "Continue") {
                     if currentStep == .done {
                         appState.hasCompletedOnboarding = true
+                        dismiss()
                     } else if let next = OnboardingStep(rawValue: currentStep.rawValue + 1) {
                         currentStep = next
                     }

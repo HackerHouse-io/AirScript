@@ -26,7 +26,7 @@ struct PermissionStepView: View {
                 permissionCard(
                     icon: "hand.raised.fill",
                     title: "Accessibility",
-                    description: "Read text context and inject dictated text",
+                    description: "Read screen context and inject text",
                     granted: appState.hasAccessibilityPermission,
                     action: {
                         PermissionChecker.requestAccessibilityIfNeeded()
@@ -34,12 +34,13 @@ struct PermissionStepView: View {
                 )
 
                 permissionCard(
-                    icon: "keyboard",
+                    icon: "keyboard.fill",
                     title: "Input Monitoring",
-                    description: "Listen for the fn key hotkey",
+                    description: "Listen for the fn key to start dictation",
                     granted: appState.hasInputMonitoringPermission,
                     action: {
                         PermissionChecker.requestInputMonitoringIfNeeded()
+                        PermissionChecker.openInputMonitoringSettings()
                     }
                 )
             }
@@ -47,6 +48,11 @@ struct PermissionStepView: View {
         .padding()
         .task {
             await appState.checkPermissions()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task {
+                await appState.checkPermissions()
+            }
         }
     }
 

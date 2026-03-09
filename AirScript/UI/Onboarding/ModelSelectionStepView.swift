@@ -38,6 +38,7 @@ struct ModelSelectionStepView: View {
     private func downloadModel(_ name: String) async {
         do {
             try await modelManager.downloadModel(named: name)
+            appState.selectedWhisperModel = name
         } catch {
             appState.lastError = error.localizedDescription
         }

@@ -22,6 +22,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
 
 struct MainAppView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.openWindow) private var openWindow
     @State private var selectedItem: SidebarItem = .home
     @State private var showingSettings = false
 
@@ -36,6 +37,33 @@ struct MainAppView: View {
         .sheet(isPresented: $showingSettings) {
             AppSettingsView()
                 .environment(appState)
+        }
+        .task {
+            await appState.checkPermissions()
+            if !appState.hasCompletedOnboarding {
+                openWindow(id: "onboarding")
+            } else {
+                await appState.loadModels()
+                appState.startHotkeyListening()
+            }
+        }
+        .onChange(of: appState.hasCompletedOnboarding) { _, completed in
+            if completed {
+                Task {
+                    await appState.loadModels()
+                    appState.startHotkeyListening()
+                }
+            }
+        }
+        .onChange(of: appState.hasInputMonitoringPermission) { wasGranted, isGranted in
+            if !wasGranted && isGranted && appState.hasCompletedOnboarding {
+                appState.startHotkeyListening()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task {
+                await appState.checkPermissions()
+            }
         }
     }
 

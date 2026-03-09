@@ -74,9 +74,8 @@ final class FlowBarController {
 
     private func positionAtBottomCenter() {
         guard let screen = NSScreen.main, let panel else { return }
-        let screenFrame = screen.visibleFrame
-        let x = screenFrame.midX - panel.frame.width / 2
-        let y = screenFrame.minY + 60
+        let x = screen.frame.midX - panel.frame.width / 2
+        let y = screen.visibleFrame.minY + 60
         panel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 }

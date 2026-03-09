@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SwiftData
 import os
 
 enum RecordingMode: String {
@@ -32,14 +33,14 @@ final class AppState {
     var isContextAwarenessEnabled = false
     var isWhisperMode = false
     var isDeveloperMode = false
+    var isAudioSavingEnabled = false
 
     // MARK: - Error
     var lastError: String?
 
     // MARK: - Onboarding
-    var hasCompletedOnboarding: Bool {
-        get { UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") }
-        set { UserDefaults.standard.set(newValue, forKey: "hasCompletedOnboarding") }
+    var hasCompletedOnboarding: Bool = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
+        didSet { UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding") }
     }
 
     // MARK: - Permissions
@@ -54,15 +55,30 @@ final class AppState {
     let hotkeyManager = HotkeyManager()
     let smartInsertion = SmartInsertionManager()
     let flowBar = FlowBarController()
+    let formattingEngine = FormattingEngine()
+    let dictionaryManager = DictionaryManager()
+    let styleManager = StyleManager()
+    let snippetManager = SnippetManager()
+    let commandRouter = CommandRouter()
+    let contextReader = ContextReader()
+    let developerModeManager = DeveloperModeManager()
+    let audioRecorder = AudioRecorder()
+    let transcriptStore = TranscriptStore()
+    let audioFeedbackManager = AudioFeedbackManager()
+    let backtrackingEngine = BacktrackingEngine()
+    let commandModeEngine: CommandModeEngine
+
+    var modelContainer: ModelContainer?
 
     private var durationTimer: Timer?
     private let logger = Logger.general
 
     init() {
+        self.commandModeEngine = CommandModeEngine(llmProcessor: llmProcessor)
         setupHotkeyCallbacks()
-        // Defer FlowBar setup to after app is ready
         DispatchQueue.main.async { [self] in
             flowBar.setup()
+            audioFeedbackManager.setup()
         }
         logger.info("AppState initialized")
     }
@@ -78,16 +94,17 @@ final class AppState {
             recordingDuration = 0
             lastError = nil
 
-            // Show Flow Bar
+            audioFeedbackManager.playRecordStart()
+
             flowBar.state = flowBarState(for: mode)
             flowBar.show()
 
-            // Start duration timer
             startDurationTimer()
 
             logger.info("Dictation started: \(mode.rawValue)")
         } catch {
             lastError = error.localizedDescription
+            audioFeedbackManager.playError()
             logger.error("Failed to start dictation: \(error.localizedDescription)")
         }
     }
@@ -98,17 +115,19 @@ final class AppState {
         isRecording = false
         isProcessing = true
         let wasCommand = recordingMode == .command
+        let duration = recordingDuration
         recordingMode = .idle
         stopDurationTimer()
 
-        // Update Flow Bar
+        audioFeedbackManager.playRecordStop()
+
         flowBar.state = .processing
 
         logger.info("Dictation stopped, processing \(samples.count) samples")
 
         Task.detached { [weak self] in
             guard let self else { return }
-            await self.processAndInject(samples: samples, isCommand: wasCommand)
+            await self.processAndInject(samples: samples, isCommand: wasCommand, duration: duration)
         }
     }
 
@@ -188,7 +207,11 @@ final class AppState {
     }
 
     func startHotkeyListening() {
-        hotkeyManager.start()
+        let success = hotkeyManager.start()
+        if !success {
+            lastError = "Failed to start hotkey listener. Grant Input Monitoring permission in System Settings → Privacy & Security."
+            logger.error("Event tap creation failed — Input Monitoring permission likely missing")
+        }
     }
 
     // MARK: - Private
@@ -231,34 +254,184 @@ final class AppState {
     }
 
     @MainActor
-    private func processAndInject(samples: [Float], isCommand: Bool) async {
+    private func processAndInject(samples: [Float], isCommand: Bool, duration: TimeInterval = 0) async {
         defer {
             isProcessing = false
             flowBar.hide()
         }
 
         do {
-            let result = try await transcriptionEngine.transcribe(audioSamples: samples)
-            rawTranscript = result.text
-
-            var finalText = result.text
-
-            if isLLMEnabled && llmProcessor.isModelLoaded {
-                finalText = try await llmProcessor.process(rawText: result.text)
+            // Step 0: Read screen context via AX APIs
+            var appContext: AppContext?
+            if isContextAwarenessEnabled {
+                appContext = contextReader.readActiveContext()
             }
 
-            let context = smartInsertion.getCursorContext()
-            finalText = smartInsertion.adjustText(finalText, for: context)
+            // Step 1: Fetch SwiftData records
+            var dictionaryEntries: [DictionaryEntry] = []
+            var snippets: [Snippet] = []
+            var appStyles: [AppStyle] = []
+            var ctx: ModelContext?
 
+            if let container = modelContainer {
+                let modelContext = ModelContext(container)
+                ctx = modelContext
+                dictionaryEntries = (try? modelContext.fetch(FetchDescriptor<DictionaryEntry>())) ?? []
+                snippets = (try? modelContext.fetch(FetchDescriptor<Snippet>())) ?? []
+                appStyles = (try? modelContext.fetch(FetchDescriptor<AppStyle>())) ?? []
+            }
+
+            // Step 2: WhisperKit transcription
+            let result = try await transcriptionEngine.transcribe(audioSamples: samples)
+            rawTranscript = result.text
+            let rawText = result.text
+
+            guard !rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                logger.info("Empty transcription, skipping pipeline")
+                return
+            }
+
+            // Step 3: Snippet check — if trigger matches, execute and return early
+            if let matchedSnippet = snippetManager.findMatch(for: rawText, in: snippets) {
+                await snippetManager.execute(snippet: matchedSnippet)
+                matchedSnippet.usageCount += 1
+                saveTranscript(text: matchedSnippet.value, rawText: rawText, duration: duration,
+                               appContext: appContext, wasCommand: false, commandAction: nil,
+                               audioFileURL: nil, modelContext: ctx)
+                try? ctx?.save()
+                logger.info("Snippet executed: \(matchedSnippet.trigger)")
+                return
+            }
+
+            // Step 4: Command routing — if command mode or high-confidence command match
+            if isCommand {
+                let handled = await commandRouter.route(text: rawText, isCommandMode: true)
+                if handled {
+                    saveTranscript(text: rawText, rawText: rawText, duration: duration,
+                                   appContext: appContext, wasCommand: true, commandAction: rawText,
+                                   audioFileURL: nil, modelContext: ctx)
+                    updateStats(wordCount: 0, duration: duration, wasCommand: true, modelContext: ctx)
+                    try? ctx?.save()
+                    logger.info("Command executed: \(rawText.prefix(50))")
+                    return
+                }
+                // Try LLM-based command interpretation
+                if let commandResult = try? await commandModeEngine.execute(command: rawText) {
+                    currentTranscript = commandResult
+                    saveTranscript(text: commandResult, rawText: rawText, duration: duration,
+                                   appContext: appContext, wasCommand: true, commandAction: rawText,
+                                   audioFileURL: nil, modelContext: ctx)
+                    updateStats(wordCount: 0, duration: duration, wasCommand: true, modelContext: ctx)
+                    try? ctx?.save()
+                    logger.info("Command mode LLM result: \(commandResult.prefix(50))")
+                    return
+                }
+            }
+
+            var finalText = rawText
+
+            // Step 5: LLM cleanup with full context
+            if isLLMEnabled && llmProcessor.isModelLoaded {
+                var processingContext = ProcessingContext()
+                processingContext.appBundleID = appContext?.bundleID
+                processingContext.visibleText = appContext?.visibleText
+                processingContext.styleInstruction = styleManager.styleInstruction(
+                    for: appContext?.bundleID, styles: appStyles)
+                if let lastInjected = backtrackingEngine.lastInjected {
+                    processingContext.isBacktrackingEnabled = true
+                    processingContext.previousTranscript = lastInjected
+                }
+                finalText = try await llmProcessor.process(rawText: rawText, context: processingContext)
+            }
+
+            // Step 6: Formatting — punctuation dictation, line breaks, list detection
+            finalText = formattingEngine.format(finalText)
+
+            // Step 7: Dictionary replacements
+            if !dictionaryEntries.isEmpty {
+                finalText = dictionaryManager.applyReplacements(to: finalText, using: dictionaryEntries)
+            }
+
+            // Step 8: Developer mode — variable recognition + backtick wrapping
+            if isDeveloperMode && IDEDetector.isInIDE {
+                let visibleCode = appContext?.visibleText ?? ""
+                finalText = developerModeManager.recognizeVariables(in: finalText, visibleCode: visibleCode)
+            }
+
+            // Step 9: Smart insertion — cursor context adjustment
+            let cursorContext = smartInsertion.getCursorContext()
+            finalText = smartInsertion.adjustText(finalText, for: cursorContext)
+
+            // Step 10: Inject text via ⌘V
             currentTranscript = finalText
-
             await TextInjector.inject(text: finalText)
             logger.info("Text injected: \"\(finalText.prefix(50))...\"")
+
+            // Step 11: Store for backtracking ("correct that")
+            backtrackingEngine.setLastInjected(finalText)
+
+            // Step 12: Save audio recording if enabled
+            var audioFileURL: URL?
+            if isAudioSavingEnabled {
+                audioFileURL = try? audioRecorder.save(samples: samples)
+            }
+
+            // Step 13: Save transcript to SwiftData
+            saveTranscript(text: finalText, rawText: rawText, duration: duration,
+                           appContext: appContext, wasCommand: false, commandAction: nil,
+                           audioFileURL: audioFileURL, modelContext: ctx)
+
+            // Step 14: Update productivity stats
+            let wordCount = finalText.split(separator: " ").count
+            updateStats(wordCount: wordCount, duration: duration, wasCommand: false, modelContext: ctx)
+
+            try? ctx?.save()
 
         } catch {
             lastError = error.localizedDescription
             flowBar.state = .error
+            audioFeedbackManager.playError()
             logger.error("Processing failed: \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: - Pipeline Helpers
+
+    private func saveTranscript(text: String, rawText: String, duration: TimeInterval,
+                                appContext: AppContext?, wasCommand: Bool, commandAction: String?,
+                                audioFileURL: URL?, modelContext: ModelContext?) {
+        guard let ctx = modelContext else { return }
+        transcriptStore.save(
+            text: text,
+            rawText: rawText,
+            duration: duration,
+            model: selectedWhisperModel,
+            llmModel: isLLMEnabled ? selectedLLMModel : nil,
+            appBundleID: appContext?.bundleID,
+            appName: appContext?.appName,
+            wasCommand: wasCommand,
+            commandAction: commandAction,
+            in: ctx
+        )
+    }
+
+    private func updateStats(wordCount: Int, duration: TimeInterval, wasCommand: Bool, modelContext: ModelContext?) {
+        guard let ctx = modelContext else { return }
+        let today = Calendar.current.startOfDay(for: .now)
+        let predicate = #Predicate<ProductivityStat> { $0.date == today }
+        let descriptor = FetchDescriptor<ProductivityStat>(predicate: predicate)
+        let stat: ProductivityStat
+        if let existing = (try? ctx.fetch(descriptor))?.first {
+            stat = existing
+        } else {
+            stat = ProductivityStat(date: .now)
+            ctx.insert(stat)
+        }
+        stat.sessionsCount += 1
+        stat.wordsTranscribed += wordCount
+        stat.totalDurationSeconds += duration
+        if wasCommand {
+            stat.commandsExecuted += 1
         }
     }
 }

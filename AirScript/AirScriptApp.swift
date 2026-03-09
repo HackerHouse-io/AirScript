@@ -80,5 +80,8 @@ struct AirScriptApp: App {
         try? URL.ensureDirectoryExists(URL.whisperModels)
         try? URL.ensureDirectoryExists(URL.llmModels)
         try? URL.ensureDirectoryExists(URL.audioRecordings)
+
+        // Wire SwiftData container to AppState
+        appState.modelContainer = sharedModelContainer
     }
 }

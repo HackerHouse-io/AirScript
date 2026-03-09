@@ -1,4 +1,5 @@
 import AppKit
+import CoreGraphics
 import os
 
 final class SnippetManager {

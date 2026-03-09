@@ -18,8 +18,9 @@ final class HotkeyManager {
 
     private let logger = Logger.hotkey
 
-    func start() {
-        guard eventTap == nil else { return }
+    @discardableResult
+    func start() -> Bool {
+        guard eventTap == nil else { return true }
 
         let eventMask: CGEventMask = (1 << CGEventType.flagsChanged.rawValue)
             | (1 << CGEventType.keyDown.rawValue)
@@ -41,7 +42,7 @@ final class HotkeyManager {
             userInfo: selfPtr
         ) else {
             logger.error("Failed to create event tap. Check Input Monitoring permission.")
-            return
+            return false
         }
 
         self.eventTap = tap
@@ -51,6 +52,7 @@ final class HotkeyManager {
         CGEvent.tapEnable(tap: tap, enable: true)
 
         logger.info("Hotkey manager started")
+        return true
     }
 
     func stop() {
