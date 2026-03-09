@@ -66,11 +66,14 @@ final class AppState {
     let transcriptStore = TranscriptStore()
     let audioFeedbackManager = AudioFeedbackManager()
     let backtrackingEngine = BacktrackingEngine()
+    let autoLearnManager = AutoLearnManager()
     let commandModeEngine: CommandModeEngine
 
     var modelContainer: ModelContainer?
 
     private var durationTimer: Timer?
+    private var pendingCorrectionOriginal: String?
+    private var didMuteAudio = false
     private let logger = Logger.general
 
     init() {
@@ -95,6 +98,12 @@ final class AppState {
             lastError = nil
 
             audioFeedbackManager.playRecordStart()
+
+            if UserDefaults.standard.bool(forKey: "muteDuringDictation") {
+                audioFeedbackManager.lowerSystemVolume()
+                audioFeedbackManager.pauseMediaPlayback()
+                didMuteAudio = true
+            }
 
             flowBar.state = flowBarState(for: mode)
             flowBar.show()
@@ -121,6 +130,12 @@ final class AppState {
 
         audioFeedbackManager.playRecordStop()
 
+        if didMuteAudio {
+            audioFeedbackManager.restoreSystemVolume()
+            audioFeedbackManager.resumeMediaPlayback()
+            didMuteAudio = false
+        }
+
         flowBar.state = .processing
 
         logger.info("Dictation stopped, processing \(samples.count) samples")
@@ -137,6 +152,13 @@ final class AppState {
             isRecording = false
             recordingMode = .idle
             stopDurationTimer()
+
+            if didMuteAudio {
+                audioFeedbackManager.restoreSystemVolume()
+                audioFeedbackManager.resumeMediaPlayback()
+                didMuteAudio = false
+            }
+
             flowBar.hide()
             logger.info("Dictation cancelled")
         }
@@ -255,9 +277,12 @@ final class AppState {
 
     @MainActor
     private func processAndInject(samples: [Float], isCommand: Bool, duration: TimeInterval = 0) async {
+        var skipDeferCleanup = false
         defer {
-            isProcessing = false
-            flowBar.hide()
+            if !skipDeferCleanup {
+                isProcessing = false
+                flowBar.hide()
+            }
         }
 
         do {
@@ -291,6 +316,32 @@ final class AppState {
                 return
             }
 
+            // Step 2.5: "Correct that" detection
+            if backtrackingEngine.isCorrectThatTrigger(rawText) {
+                guard backtrackingEngine.lastInjected != nil else {
+                    logger.info("Correct-that triggered but no previous injection")
+                    return
+                }
+                pendingCorrectionOriginal = backtrackingEngine.lastInjected
+                backtrackingEngine.selectLastInjected()
+
+                do {
+                    try await Task.sleep(nanoseconds: 150_000_000) // 150ms for selection to register
+                } catch {
+                    return // Task was cancelled
+                }
+
+                flowBar.partialTranscript = "Say it again..."
+                flowBar.state = .recordingPTT
+                flowBar.show()
+
+                // Prevent defer from hiding the flow bar and resetting isProcessing
+                skipDeferCleanup = true
+                isProcessing = false
+                startDictation(mode: .pushToTalk)
+                return
+            }
+
             // Step 3: Snippet check — if trigger matches, execute and return early
             if let matchedSnippet = snippetManager.findMatch(for: rawText, in: snippets) {
                 await snippetManager.execute(snippet: matchedSnippet)
@@ -312,6 +363,7 @@ final class AppState {
                                    audioFileURL: nil, modelContext: ctx)
                     updateStats(wordCount: 0, duration: duration, wasCommand: true, modelContext: ctx)
                     try? ctx?.save()
+                    audioFeedbackManager.playCommandExecuted()
                     logger.info("Command executed: \(rawText.prefix(50))")
                     return
                 }
@@ -323,6 +375,7 @@ final class AppState {
                                    audioFileURL: nil, modelContext: ctx)
                     updateStats(wordCount: 0, duration: duration, wasCommand: true, modelContext: ctx)
                     try? ctx?.save()
+                    audioFeedbackManager.playCommandExecuted()
                     logger.info("Command mode LLM result: \(commandResult.prefix(50))")
                     return
                 }
@@ -365,7 +418,19 @@ final class AppState {
             // Step 10: Inject text via ⌘V
             currentTranscript = finalText
             await TextInjector.inject(text: finalText)
+            audioFeedbackManager.playTranscriptionComplete()
             logger.info("Text injected: \"\(finalText.prefix(50))...\"")
+
+            // Step 10.5: Log correction if this was a "correct that" replacement
+            if let original = pendingCorrectionOriginal, let modelContext = ctx {
+                autoLearnManager.logCorrection(
+                    original: original,
+                    corrected: finalText,
+                    appBundleID: appContext?.bundleID,
+                    in: modelContext
+                )
+                pendingCorrectionOriginal = nil
+            }
 
             // Step 11: Store for backtracking ("correct that")
             backtrackingEngine.setLastInjected(finalText)

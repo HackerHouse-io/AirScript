@@ -46,7 +46,12 @@ final class LLMProcessor {
 
         let _ = PromptBuilder.commandMode(selectedText: selectedText, command: command)
 
-        // TODO: Replace with actual MLX LLM inference
+        // Rule-based command processing (fallback until MLX is wired)
+        let commandType = RuleBasedCommandProcessor.classify(command)
+        if let result = RuleBasedCommandProcessor.apply(commandType, to: selectedText) {
+            return result
+        }
+
         return selectedText
     }
 
