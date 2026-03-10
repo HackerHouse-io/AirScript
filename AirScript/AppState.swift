@@ -302,6 +302,8 @@ final class AppState {
             var dictionaryEntries: [DictionaryEntry] = []
             var snippets: [Snippet] = []
             var appStyles: [AppStyle] = []
+            var customCommands: [CustomVoiceCommand] = []
+            var customAliases: [CustomAppAlias] = []
             var ctx: ModelContext?
 
             if let container = modelContainer {
@@ -310,6 +312,8 @@ final class AppState {
                 dictionaryEntries = (try? modelContext.fetch(FetchDescriptor<DictionaryEntry>())) ?? []
                 snippets = (try? modelContext.fetch(FetchDescriptor<Snippet>())) ?? []
                 appStyles = (try? modelContext.fetch(FetchDescriptor<AppStyle>())) ?? []
+                customCommands = (try? modelContext.fetch(FetchDescriptor<CustomVoiceCommand>())) ?? []
+                customAliases = (try? modelContext.fetch(FetchDescriptor<CustomAppAlias>())) ?? []
             }
 
             // Step 2: WhisperKit transcription
@@ -360,20 +364,24 @@ final class AppState {
                 return
             }
 
-            // Step 4: Command routing — if command mode or high-confidence command match
+            // Step 4: Smart intent classification — handles both command and dictation modes
+            let commandRouted = await commandRouter.route(
+                text: rawText, isCommandMode: isCommand,
+                customCommands: customCommands, customAliases: customAliases
+            )
+            if commandRouted {
+                saveTranscript(text: rawText, rawText: rawText, duration: duration,
+                               appContext: appContext, wasCommand: true, commandAction: rawText,
+                               audioFileURL: nil, modelContext: ctx)
+                updateStats(wordCount: 0, duration: duration, wasCommand: true, modelContext: ctx)
+                try? ctx?.save()
+                audioFeedbackManager.playCommandExecuted()
+                logger.info("Command executed: \(rawText.prefix(50))")
+                return
+            }
+
+            // Step 4.5: In command mode, fall back to LLM-based command interpretation
             if isCommand {
-                let handled = await commandRouter.route(text: rawText, isCommandMode: true)
-                if handled {
-                    saveTranscript(text: rawText, rawText: rawText, duration: duration,
-                                   appContext: appContext, wasCommand: true, commandAction: rawText,
-                                   audioFileURL: nil, modelContext: ctx)
-                    updateStats(wordCount: 0, duration: duration, wasCommand: true, modelContext: ctx)
-                    try? ctx?.save()
-                    audioFeedbackManager.playCommandExecuted()
-                    logger.info("Command executed: \(rawText.prefix(50))")
-                    return
-                }
-                // Try LLM-based command interpretation
                 if let commandResult = try? await commandModeEngine.execute(command: rawText) {
                     currentTranscript = commandResult
                     saveTranscript(text: commandResult, rawText: rawText, duration: duration,
@@ -385,6 +393,10 @@ final class AppState {
                     logger.info("Command mode LLM result: \(commandResult.prefix(50))")
                     return
                 }
+                // Both router and LLM fallback failed in command mode
+                audioFeedbackManager.playError()
+                logger.info("Command mode: no handler matched: \(rawText.prefix(50))")
+                return
             }
 
             var finalText = rawText

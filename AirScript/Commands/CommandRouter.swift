@@ -4,42 +4,43 @@ import os
 
 final class CommandRouter {
     private let executor = OSCommandExecutor()
+    private let intentClassifier = IntentClassifier()
     private let logger = Logger.commands
+    private var lastRegisteredAliases: [String: String] = [:]
 
     func route(text: String, isCommandMode: Bool, customCommands: [CustomVoiceCommand] = [], customAliases: [CustomAppAlias] = []) async -> Bool {
-        // Register custom aliases with executor
+        // Register custom aliases with both executor and classifier (only if changed)
         if !customAliases.isEmpty {
             var aliasMap: [String: String] = [:]
             for alias in customAliases {
                 aliasMap[alias.spokenName.lowercased()] = alias.appName
             }
-            executor.registerCustomAliases(aliasMap)
-        }
-
-        // In command mode: everything is a command
-        // In dictation mode: only exact matches
-        let match = CommandVocabulary.match(text)
-
-        if let match {
-            if isCommandMode || match.confidence >= 0.9 {
-                logger.info("Executing command: \(match.command)")
-                await executor.execute(match.action)
-                return true
+            if aliasMap != lastRegisteredAliases {
+                lastRegisteredAliases = aliasMap
+                executor.registerCustomAliases(aliasMap)
+                await intentClassifier.registerCustomAliases(aliasMap)
             }
         }
 
-        // Check custom commands (after built-in)
+        // Use IntentClassifier for smart matching
+        let (intent, confidence) = await intentClassifier.classify(text, isCommandMode: isCommandMode)
+
+        switch intent {
+        case .command(let action):
+            logger.info("Intent classified as command (conf: \(confidence)): \(text.prefix(50))")
+            await executor.execute(action)
+            return true
+        case .dictation:
+            break
+        }
+
+        // Check custom commands (these use exact trigger matching)
         if let customMatch = CommandVocabulary.matchCustom(text, customCommands: customCommands) {
-            if isCommandMode || customMatch.confidence >= 0.9 {
+            if isCommandMode || customMatch.confidence >= 0.8 {
                 logger.info("Executing custom command: \(customMatch.command)")
                 await executeCustomCommand(customMatch.customCommand)
                 return true
             }
-        }
-
-        if isCommandMode && match == nil {
-            NSSound.beep()
-            logger.info("No command matched: \(text)")
         }
 
         return false

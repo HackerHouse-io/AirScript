@@ -9,7 +9,7 @@ final class OSCommandExecutor {
         customAliases = aliases
     }
 
-    private static let appAliases: [String: String] = [
+    static let appAliases: [String: String] = [
         "terminal": "Terminal",
         "chrome": "Google Chrome",
         "firefox": "Firefox",
@@ -94,8 +94,7 @@ final class OSCommandExecutor {
         if let app = apps.first(where: {
             $0.localizedName?.localizedCaseInsensitiveContains(name) == true
         }) {
-            app.activate()
-            logger.info("Activated: \(app.localizedName ?? name)")
+            bringToFront(app, label: app.localizedName ?? name)
             return
         }
 
@@ -105,8 +104,7 @@ final class OSCommandExecutor {
             if let app = apps.first(where: {
                 $0.localizedName?.localizedCaseInsensitiveContains(resolved) == true
             }) {
-                app.activate()
-                logger.info("Activated via alias: \(app.localizedName ?? resolved)")
+                bringToFront(app, label: app.localizedName ?? resolved)
                 return
             }
             // Not running — try launching the resolved name
@@ -117,6 +115,22 @@ final class OSCommandExecutor {
         // Fallback — try launching with title-cased name
         let titleCased = name.prefix(1).uppercased() + name.dropFirst()
         launchApp(named: titleCased)
+    }
+
+    private func bringToFront(_ app: NSRunningApplication, label: String) {
+        guard let bundleURL = app.bundleURL else {
+            logger.warning("No bundle URL for \(label), falling back")
+            app.activate(options: .activateIgnoringOtherApps)
+            return
+        }
+        let config = NSWorkspace.OpenConfiguration()
+        config.activates = true
+        NSWorkspace.shared.openApplication(at: bundleURL, configuration: config) { [weak self] _, error in
+            if let error {
+                self?.logger.warning("Failed to activate \(label): \(error.localizedDescription)")
+            }
+        }
+        logger.info("Activated: \(label)")
     }
 
     private func launchApp(named name: String) {

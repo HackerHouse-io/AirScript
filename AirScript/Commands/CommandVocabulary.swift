@@ -1,11 +1,5 @@
 import Foundation
 
-struct CommandMatch {
-    let command: String
-    let action: CommandAction
-    let confidence: Double
-}
-
 struct CustomCommandMatch {
     let command: String
     let customCommand: CustomVoiceCommand
@@ -36,109 +30,21 @@ enum CommandAction {
 }
 
 enum CommandVocabulary {
-    static let commands: [(patterns: [String], action: (String) -> CommandAction)] = [
-        // App switching
-        (["switch to *", "go to *", "open up *", "open *"], { name in .switchToApp(name: name) }),
-        (["launch *", "start *"], { name in .openApp(name: name) }),
+    // MARK: - Shared Filler Lists (single source of truth)
 
-        // Desktop navigation
-        (["next desktop", "next space", "right desktop"], { _ in .nextDesktop }),
-        (["previous desktop", "previous space", "left desktop"], { _ in .previousDesktop }),
-
-        // Volume
-        (["volume up", "louder"], { _ in .volumeUp }),
-        (["volume down", "quieter", "softer"], { _ in .volumeDown }),
-        (["mute", "unmute"], { _ in .mute }),
-
-        // Media
-        (["play", "pause", "play pause"], { _ in .playPause }),
-        (["next track", "next song", "skip"], { _ in .nextTrack }),
-        (["previous track", "previous song"], { _ in .previousTrack }),
-
-        // Window
-        (["close window", "close this"], { _ in .closeWindow }),
-        (["minimize", "minimize window"], { _ in .minimizeWindow }),
-        (["full screen", "fullscreen", "enter full screen"], { _ in .fullScreen }),
-
-        // System
-        (["take screenshot", "screenshot"], { _ in .screenshot }),
-        (["search for *", "google *", "look up *"], { query in .search(query: query) }),
-        (["undo"], { _ in .undo }),
-        (["redo"], { _ in .redo }),
-
-        // Clipboard
-        (["copy", "copy that"], { _ in .copy }),
-        (["paste"], { _ in .paste }),
-        (["cut"], { _ in .cut }),
-        (["select all"], { _ in .selectAll }),
-
-        // Tabs/Windows
-        (["new tab"], { _ in .newTab }),
-        (["new window"], { _ in .newWindow }),
-        (["close tab"], { _ in .closeTab }),
-
-        // System extras
-        (["lock screen"], { _ in .lockScreen }),
+    static let fillerPrefixes = [
+        "please", "can you", "could you", "hey", "okay", "ok",
+        "so", "well", "actually", "just", "i need to",
+        "i want to", "i'd like to", "go ahead and"
     ]
 
-    static func match(_ text: String) -> CommandMatch? {
-        let normalized = text.lowercased()
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .trimmingCharacters(in: .punctuationCharacters)
-
-        for (patterns, actionBuilder) in commands {
-            for pattern in patterns {
-                if pattern.hasSuffix("*") {
-                    let prefix = String(pattern.dropLast()).trimmingCharacters(in: .whitespaces)
-                    if normalized.hasPrefix(prefix) {
-                        let argument = String(normalized.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces)
-                        let cleaned = stripArticles(argument)
-                        return CommandMatch(
-                            command: normalized,
-                            action: actionBuilder(cleaned),
-                            confidence: 1.0
-                        )
-                    }
-                    // Fuzzy prefix match
-                    let words = normalized.components(separatedBy: " ")
-                    let prefixWords = prefix.components(separatedBy: " ")
-                    if words.count > prefixWords.count {
-                        let spokenPrefix = words.prefix(prefixWords.count).joined(separator: " ")
-                        if spokenPrefix.fuzzyMatches(prefix, maxDistance: 2) {
-                            let argument = words.dropFirst(prefixWords.count).joined(separator: " ")
-                            let cleaned = stripArticles(argument)
-                            return CommandMatch(
-                                command: normalized,
-                                action: actionBuilder(cleaned),
-                                confidence: 0.8
-                            )
-                        }
-                    }
-                } else {
-                    if normalized == pattern {
-                        return CommandMatch(
-                            command: normalized,
-                            action: actionBuilder(""),
-                            confidence: 1.0
-                        )
-                    }
-                    if normalized.fuzzyMatches(pattern, maxDistance: 2) {
-                        return CommandMatch(
-                            command: normalized,
-                            action: actionBuilder(""),
-                            confidence: 0.7
-                        )
-                    }
-                }
-            }
-        }
-        return nil
-    }
+    static let fillerSuffixes = [
+        "please", "thanks", "thank you", "now",
+        "for me", "right now"
+    ]
 
     static func matchCustom(_ text: String, customCommands: [CustomVoiceCommand]) -> CustomCommandMatch? {
-        let normalized = text.lowercased()
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .trimmingCharacters(in: .punctuationCharacters)
+        let normalized = normalize(text)
 
         for command in customCommands {
             let trigger = command.trigger.lowercased()
@@ -153,17 +59,39 @@ enum CommandVocabulary {
         return nil
     }
 
-    private static func stripArticles(_ text: String) -> String {
-        let articles = ["the ", "a ", "an "]
-        var result = text
-        for article in articles {
-            if result.lowercased().hasPrefix(article) {
-                result = String(result.dropFirst(article.count))
+    static func normalize(_ text: String) -> String {
+        var result = text.lowercased()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: .punctuationCharacters)
+
+        // Strip filler prefixes iteratively
+        var didStrip = true
+        while didStrip {
+            didStrip = false
+            for prefix in fillerPrefixes {
+                let check = prefix + " "
+                if result.hasPrefix(check) {
+                    result = String(result.dropFirst(check.count))
+                    didStrip = true
+                    break
+                }
             }
         }
-        if result.lowercased().hasSuffix(" app") {
-            result = String(result.dropLast(4)).trimmingCharacters(in: .whitespaces)
+
+        // Strip filler suffixes iteratively
+        didStrip = true
+        while didStrip {
+            didStrip = false
+            for suffix in fillerSuffixes {
+                let check = " " + suffix
+                if result.hasSuffix(check) {
+                    result = String(result.dropLast(check.count))
+                    didStrip = true
+                    break
+                }
+            }
         }
-        return result
+
+        return result.trimmingCharacters(in: .whitespaces)
     }
 }
