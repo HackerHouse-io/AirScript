@@ -9,22 +9,22 @@ struct NoteRowView: View {
                 if note.isPinned {
                     Image(systemName: "pin.fill")
                         .font(.caption2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(AirScriptTheme.accentWarm)
                 }
                 Text(note.text)
                     .lineLimit(2)
-                    .font(.body)
+                    .font(AirScriptTheme.fontBodyPrimary)
             }
 
             HStack {
                 Text(note.createdAt, style: .relative)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AirScriptTheme.textSecondary)
 
                 if note.audioFileURL != nil {
                     Image(systemName: "waveform")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AirScriptTheme.accentMuted)
                 }
             }
         }

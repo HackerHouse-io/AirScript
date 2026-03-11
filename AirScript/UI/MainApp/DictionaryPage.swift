@@ -36,135 +36,97 @@ struct DictionaryPage: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 20) {
-                    heroBanner
-                    controlBar
-                    entryList
+                    PageHeader(title: "Dictionary")
+
+                    // Controls
+                    HStack(spacing: 12) {
+                        AirSearchBar(text: $searchText, placeholder: "Search dictionary...")
+
+                        Picker("", selection: $sourceFilter) {
+                            ForEach(DictionarySourceFilter.allCases, id: \.self) { filter in
+                                Text(filter.rawValue).tag(filter)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .fixedSize()
+
+                        Spacer()
+
+                        Button {
+                            showingAddSheet = true
+                        } label: {
+                            Label("Add Word", systemImage: "plus")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(AirScriptTheme.accent)
+                    }
+                    .padding(.horizontal)
+
+                    // Entry list
+                    let filtered = filteredEntries
+                    GlassCard(padding: 0) {
+                        VStack(spacing: 0) {
+                            if filtered.isEmpty {
+                                EmptyStateView(
+                                    icon: "textformat.abc",
+                                    title: searchText.isEmpty ? "No dictionary entries yet" : "No matches found",
+                                    subtitle: searchText.isEmpty ? "Add custom words to improve transcription accuracy" : nil
+                                )
+                                .frame(height: 200)
+                            } else {
+                                // Header row
+                                HStack {
+                                    Text("Spoken")
+                                        .font(AirScriptTheme.fontCaption)
+                                        .foregroundStyle(AirScriptTheme.textTertiary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    Image(systemName: "arrow.right")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                    Text("Written")
+                                        .font(AirScriptTheme.fontCaption)
+                                        .foregroundStyle(AirScriptTheme.textTertiary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    Text("Used")
+                                        .font(AirScriptTheme.fontCaption)
+                                        .foregroundStyle(AirScriptTheme.textTertiary)
+                                        .frame(width: 50)
+                                    Text("Source")
+                                        .font(AirScriptTheme.fontCaption)
+                                        .foregroundStyle(AirScriptTheme.textTertiary)
+                                        .frame(width: 80)
+                                    Spacer()
+                                        .frame(width: 30)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+
+                                Divider()
+
+                                ForEach(Array(filtered.enumerated()), id: \.element.id) { index, entry in
+                                    HoverRow {
+                                        dictionaryRowContent(entry)
+                                    }
+                                    .staggeredAppear(index: index)
+                                    Divider()
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
                 }
-                .padding(24)
+                .padding(.bottom, 8)
             }
         }
-        .background(Color(nsColor: .windowBackgroundColor))
         .sheet(isPresented: $showingAddSheet) {
             AddDictionaryEntrySheet()
         }
     }
 
-    // MARK: - Hero Banner
-
-    private var heroBanner: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Dictionary")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-
-                Text("Teach AirScript your vocabulary. Add custom words, names, and technical terms so they're always transcribed correctly.")
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
-                    .lineLimit(2)
-            }
-
-            Spacer()
-
-            Image(systemName: "textformat.abc")
-                .font(.system(size: 48))
-                .foregroundStyle(.white.opacity(0.3))
-        }
-        .padding(24)
-        .background(
-            LinearGradient(
-                colors: [Color.purple, Color.purple.opacity(0.7)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    // MARK: - Controls
-
-    private var controlBar: some View {
-        HStack(spacing: 12) {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                TextField("Search dictionary...", text: $searchText)
-                    .textFieldStyle(.plain)
-            }
-            .padding(8)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-            Picker("", selection: $sourceFilter) {
-                ForEach(DictionarySourceFilter.allCases, id: \.self) { filter in
-                    Text(filter.rawValue).tag(filter)
-                }
-            }
-            .pickerStyle(.segmented)
-            .frame(width: 240)
-
-            Spacer()
-
-            Button {
-                showingAddSheet = true
-            } label: {
-                Label("Add Word", systemImage: "plus")
-            }
-            .buttonStyle(.borderedProminent)
-        }
-    }
-
-    // MARK: - Entry List
-
-    private var entryList: some View {
-        VStack(spacing: 0) {
-            if filteredEntries.isEmpty {
-                emptyState
-            } else {
-                // Header row
-                HStack {
-                    Text("Spoken")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Image(systemName: "arrow.right")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                    Text("Written")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("Used")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 50)
-                    Text("Source")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 80)
-                    Spacer()
-                        .frame(width: 30)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-
-                Divider()
-
-                ForEach(filteredEntries) { entry in
-                    dictionaryRow(entry)
-                    Divider()
-                }
-            }
-        }
-        .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-
-    private func dictionaryRow(_ entry: DictionaryEntry) -> some View {
+    private func dictionaryRowContent(_ entry: DictionaryEntry) -> some View {
         HStack {
             Text(entry.spoken)
-                .font(.body)
+                .font(AirScriptTheme.fontBodyPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Image(systemName: "arrow.right")
@@ -172,25 +134,22 @@ struct DictionaryPage: View {
                 .foregroundStyle(.tertiary)
 
             Text(entry.written)
-                .font(.body)
-                .fontWeight(.medium)
-                .foregroundStyle(.blue)
+                .font(AirScriptTheme.fontBodyMedium)
+                .foregroundStyle(AirScriptTheme.accent)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Text("\(entry.usageCount)")
-                .font(.caption)
+                .font(AirScriptTheme.fontMono)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
                 .frame(width: 50)
 
-            Text(entry.source == .manual ? "Manual" : "Learned")
-                .font(.caption2)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(entry.source == .manual ? Color.blue.opacity(0.15) : Color.green.opacity(0.15))
-                .foregroundStyle(entry.source == .manual ? .blue : .green)
-                .clipShape(Capsule())
-                .frame(width: 80)
+            StatusBadge(
+                text: entry.source == .manual ? "Manual" : "Learned",
+                color: entry.source == .manual ? AirScriptTheme.accent : AirScriptTheme.statusSuccess,
+                style: .mono
+            )
+            .frame(width: 80)
 
             Button {
                 modelContext.delete(entry)
@@ -202,26 +161,6 @@ struct DictionaryPage: View {
             .buttonStyle(.borderless)
             .frame(width: 30)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "textformat.abc")
-                .font(.system(size: 36))
-                .foregroundStyle(.secondary)
-            Text(searchText.isEmpty ? "No dictionary entries yet" : "No matches found")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            if searchText.isEmpty {
-                Text("Add custom words to improve transcription accuracy")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
     }
 }
 
@@ -236,49 +175,33 @@ struct AddDictionaryEntrySheet: View {
     @State private var caseSensitive = false
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Add Dictionary Entry")
-                .font(.headline)
-
-            VStack(alignment: .leading, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Spoken form")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextField("e.g. whisperkit", text: $spoken)
-                        .textFieldStyle(.roundedBorder)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Written form")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextField("e.g. WhisperKit", text: $written)
-                        .textFieldStyle(.roundedBorder)
-                }
-
+        AirSheet(title: "Add Dictionary Entry") {
+            VStack(spacing: 16) {
+                AirTextField(label: "Spoken form", text: $spoken, placeholder: "e.g. whisperkit")
+                AirTextField(label: "Written form", text: $written, placeholder: "e.g. WhisperKit")
                 Toggle("Case sensitive", isOn: $caseSensitive)
-            }
 
-            HStack {
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Spacer()
-                Button("Add") {
-                    let entry = DictionaryEntry(
-                        spoken: spoken,
-                        written: written,
-                        caseSensitive: caseSensitive
-                    )
-                    modelContext.insert(entry)
-                    dismiss()
+                HStack {
+                    Button("Cancel") { dismiss() }
+                        .keyboardShortcut(.cancelAction)
+                    Spacer()
+                    Button("Add") {
+                        let entry = DictionaryEntry(
+                            spoken: spoken,
+                            written: written,
+                            caseSensitive: caseSensitive
+                        )
+                        modelContext.insert(entry)
+                        dismiss()
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(spoken.isEmpty || written.isEmpty)
+                    .buttonStyle(.borderedProminent)
+                    .tint(AirScriptTheme.accent)
                 }
-                .keyboardShortcut(.defaultAction)
-                .disabled(spoken.isEmpty || written.isEmpty)
-                .buttonStyle(.borderedProminent)
             }
+            .padding()
         }
-        .padding(24)
         .frame(width: 360)
     }
 }

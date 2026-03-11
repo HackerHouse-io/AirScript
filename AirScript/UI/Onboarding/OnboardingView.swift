@@ -15,19 +15,21 @@ struct OnboardingView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Progress
-            HStack(spacing: 4) {
+            // Progress dots
+            HStack(spacing: 8) {
                 ForEach(OnboardingStep.allCases, id: \.self) { step in
-                    Capsule()
-                        .fill(step.rawValue <= currentStep.rawValue ? Color.blue : Color.secondary.opacity(0.3))
-                        .frame(height: 4)
+                    Circle()
+                        .fill(step.rawValue <= currentStep.rawValue
+                              ? AirScriptTheme.accent
+                              : Color(nsColor: .separatorColor))
+                        .frame(width: 8, height: 8)
                 }
             }
             .padding()
 
             Divider()
 
-            // Content
+            // Content with transitions
             Group {
                 switch currentStep {
                 case .welcome:
@@ -46,6 +48,11 @@ struct OnboardingView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.asymmetric(
+                insertion: .move(edge: .trailing).combined(with: .opacity),
+                removal: .move(edge: .leading).combined(with: .opacity)
+            ))
+            .animation(.easeInOut(duration: 0.3), value: currentStep)
 
             Divider()
 
@@ -54,7 +61,9 @@ struct OnboardingView: View {
                 if currentStep != .welcome {
                     Button("Back") {
                         if let prev = OnboardingStep(rawValue: currentStep.rawValue - 1) {
-                            currentStep = prev
+                            withAnimation {
+                                currentStep = prev
+                            }
                         }
                     }
                 }
@@ -64,10 +73,13 @@ struct OnboardingView: View {
                         appState.hasCompletedOnboarding = true
                         dismiss()
                     } else if let next = OnboardingStep(rawValue: currentStep.rawValue + 1) {
-                        currentStep = next
+                        withAnimation {
+                            currentStep = next
+                        }
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(AirScriptTheme.accent)
             }
             .padding()
         }
@@ -76,25 +88,35 @@ struct OnboardingView: View {
 
     private var welcomeStep: some View {
         VStack(spacing: 16) {
-            Image(systemName: "waveform")
-                .font(.system(size: 60))
-                .foregroundStyle(.blue)
+            ZStack {
+                Circle()
+                    .fill(AirScriptTheme.accentWash)
+                    .frame(width: 100, height: 100)
+                Image(systemName: "waveform")
+                    .font(.system(size: 48, weight: .light))
+                    .foregroundStyle(AirScriptTheme.accent)
+            }
             Text("Welcome to AirScript")
-                .font(.title)
+                .font(AirScriptTheme.fontHero)
             Text("100% local voice dictation for macOS.\nYour voice never leaves your computer.")
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(AirScriptTheme.textSecondary)
         }
         .padding()
     }
 
     private var doneStep: some View {
         VStack(spacing: 16) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(.green)
+            ZStack {
+                Circle()
+                    .fill(AirScriptTheme.statusSuccess.opacity(0.12))
+                    .frame(width: 100, height: 100)
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 48, weight: .light))
+                    .foregroundStyle(AirScriptTheme.statusSuccess)
+            }
             Text("You're all set!")
-                .font(.title)
+                .font(AirScriptTheme.fontHero)
             VStack(alignment: .leading, spacing: 8) {
                 hotkeyHint("fn (hold)", "Push-to-talk")
                 hotkeyHint("fn (double-tap)", "Hands-free mode")
@@ -102,8 +124,7 @@ struct OnboardingView: View {
                 hotkeyHint("fn + Ctrl", "Command mode")
             }
             .padding()
-            .background(.secondary.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: AirScriptTheme.Radius.md))
         }
         .padding()
     }
@@ -111,11 +132,10 @@ struct OnboardingView: View {
     private func hotkeyHint(_ key: String, _ desc: String) -> some View {
         HStack {
             Text(key)
-                .font(.system(.caption, design: .monospaced))
+                .font(AirScriptTheme.fontMono)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(.secondary.opacity(0.2))
-                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 4))
             Text(desc)
                 .font(.subheadline)
         }

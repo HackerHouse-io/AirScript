@@ -33,19 +33,36 @@ struct ScratchpadPage: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 20) {
-                    heroBanner
-                    controlBar
+                    PageHeader(title: "Scratchpad")
+
+                    // Controls
+                    HStack(spacing: 12) {
+                        AirSearchBar(text: $searchText, placeholder: "Search notes...")
+                        Spacer()
+                        Button {
+                            showingNewNote = true
+                        } label: {
+                            Label("New Note", systemImage: "plus")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(AirScriptTheme.accent)
+                    }
+                    .padding(.horizontal)
 
                     if notes.isEmpty {
-                        emptyState
+                        EmptyStateView(
+                            icon: "note.text",
+                            title: "No notes yet",
+                            subtitle: "Create a note or use voice to capture quick thoughts"
+                        )
+                        .frame(height: 200)
                     } else {
                         notesList
                     }
                 }
-                .padding(24)
+                .padding(.bottom, 8)
             }
         }
-        .background(Color(nsColor: .windowBackgroundColor))
         .sheet(isPresented: $showingNewNote) {
             NewNoteSheet()
         }
@@ -54,107 +71,55 @@ struct ScratchpadPage: View {
         }
     }
 
-    // MARK: - Hero Banner
-
-    private var heroBanner: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Scratchpad")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-
-                Text("Quick voice notes and scratch thoughts. Capture ideas instantly with your voice — pin the important ones for easy access.")
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
-                    .lineLimit(2)
-            }
-
-            Spacer()
-
-            Image(systemName: "note.text")
-                .font(.system(size: 48))
-                .foregroundStyle(.white.opacity(0.3))
-        }
-        .padding(24)
-        .background(
-            LinearGradient(
-                colors: [Color.teal, Color.teal.opacity(0.7)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    // MARK: - Controls
-
-    private var controlBar: some View {
-        HStack(spacing: 12) {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                TextField("Search notes...", text: $searchText)
-                    .textFieldStyle(.plain)
-            }
-            .padding(8)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-            Spacer()
-
-            Button {
-                showingNewNote = true
-            } label: {
-                Label("New Note", systemImage: "plus")
-            }
-            .buttonStyle(.borderedProminent)
-        }
-    }
-
     // MARK: - Notes List
 
     private var notesList: some View {
-        VStack(spacing: 16) {
-            if !pinnedNotes.isEmpty {
+        let pinned = pinnedNotes
+        let unpinned = unpinnedNotes
+        return VStack(spacing: 16) {
+            if !pinned.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Pinned")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
-                        .textCase(.uppercase)
+                    SectionHeader(title: "Pinned")
 
-                    VStack(spacing: 1) {
-                        ForEach(pinnedNotes) { note in
-                            noteRow(note)
+                    GlassCard(padding: 0) {
+                        LazyVStack(spacing: 0) {
+                            ForEach(Array(pinned.enumerated()), id: \.element.id) { index, note in
+                                if index > 0 { Divider() }
+                                HoverRow {
+                                    noteRowContent(note)
+                                }
+                                .staggeredAppear(index: index)
+                            }
                         }
                     }
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
                 }
             }
 
-            if !unpinnedNotes.isEmpty {
+            if !unpinned.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    if !pinnedNotes.isEmpty {
-                        Text("Notes")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.secondary)
-                            .textCase(.uppercase)
+                    if !pinned.isEmpty {
+                        SectionHeader(title: "Notes")
                     }
 
-                    VStack(spacing: 1) {
-                        ForEach(unpinnedNotes) { note in
-                            noteRow(note)
+                    GlassCard(padding: 0) {
+                        LazyVStack(spacing: 0) {
+                            ForEach(Array(unpinned.enumerated()), id: \.element.id) { index, note in
+                                if index > 0 { Divider() }
+                                HoverRow {
+                                    noteRowContent(note)
+                                }
+                                .staggeredAppear(index: index)
+                            }
                         }
                     }
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
                 }
             }
         }
     }
 
-    private func noteRow(_ note: AirNote) -> some View {
+    private func noteRowContent(_ note: AirNote) -> some View {
         Button {
             selectedNote = note
         } label: {
@@ -162,12 +127,12 @@ struct ScratchpadPage: View {
                 if note.isPinned {
                     Image(systemName: "pin.fill")
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(AirScriptTheme.accentWarm)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(note.text)
-                        .font(.subheadline)
+                        .font(AirScriptTheme.fontBodyPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                         .foregroundStyle(.primary)
@@ -180,13 +145,13 @@ struct ScratchpadPage: View {
                         if note.audioFileURL != nil {
                             Image(systemName: "waveform")
                                 .font(.caption2)
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(AirScriptTheme.accentMuted)
                         }
 
                         if !note.tags.isEmpty {
                             Text(note.tags.joined(separator: ", "))
                                 .font(.caption2)
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(AirScriptTheme.accent)
                                 .lineLimit(1)
                         }
                     }
@@ -195,13 +160,10 @@ struct ScratchpadPage: View {
                 Spacer()
 
                 Text(formatDuration(note.duration))
-                    .font(.caption)
+                    .font(AirScriptTheme.fontMono)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color(nsColor: .controlBackgroundColor))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -223,24 +185,6 @@ struct ScratchpadPage: View {
         }
     }
 
-    private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "note.text")
-                .font(.system(size: 40))
-                .foregroundStyle(.secondary)
-            Text("No notes yet")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text("Create a note or use voice to capture quick thoughts")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-
     private func formatDuration(_ duration: TimeInterval) -> String {
         if duration < 60 { return "\(Int(duration))s" }
         let mins = Int(duration) / 60
@@ -258,34 +202,34 @@ struct NewNoteSheet: View {
     @State private var text = ""
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("New Note")
-                .font(.headline)
+        AirSheet(title: "New Note") {
+            VStack(spacing: 16) {
+                TextEditor(text: $text)
+                    .font(.body)
+                    .frame(height: 120)
+                    .border(Color(nsColor: .separatorColor))
 
-            TextEditor(text: $text)
-                .font(.body)
-                .frame(height: 120)
-                .border(Color(nsColor: .separatorColor))
-
-            HStack {
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Spacer()
-                Button("Save") {
-                    let note = AirNote(
-                        text: text,
-                        rawText: text,
-                        duration: 0
-                    )
-                    modelContext.insert(note)
-                    dismiss()
+                HStack {
+                    Button("Cancel") { dismiss() }
+                        .keyboardShortcut(.cancelAction)
+                    Spacer()
+                    Button("Save") {
+                        let note = AirNote(
+                            text: text,
+                            rawText: text,
+                            duration: 0
+                        )
+                        modelContext.insert(note)
+                        dismiss()
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(text.isEmpty)
+                    .buttonStyle(.borderedProminent)
+                    .tint(AirScriptTheme.accent)
                 }
-                .keyboardShortcut(.defaultAction)
-                .disabled(text.isEmpty)
-                .buttonStyle(.borderedProminent)
             }
+            .padding()
         }
-        .padding(24)
         .frame(width: 400)
     }
 }
@@ -297,36 +241,37 @@ struct NoteDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Note")
-                    .font(.headline)
-                Spacer()
-                Text(note.createdAt, style: .date)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            ScrollView {
-                Text(note.text)
-                    .font(.body)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .frame(maxHeight: 300)
-
-            HStack {
-                Button("Copy") {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(note.text, forType: .string)
+        AirSheet(title: "Note", onDismiss: { dismiss() }) {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Text(note.createdAt, style: .date)
+                        .font(AirScriptTheme.fontCaption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
                 }
-                Spacer()
-                Button("Done") { dismiss() }
-                    .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
+
+                ScrollView {
+                    Text(note.text)
+                        .font(.body)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 300)
+
+                HStack {
+                    Button("Copy") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(note.text, forType: .string)
+                    }
+                    Spacer()
+                    Button("Done") { dismiss() }
+                        .keyboardShortcut(.defaultAction)
+                        .buttonStyle(.borderedProminent)
+                        .tint(AirScriptTheme.accent)
+                }
             }
+            .padding()
         }
-        .padding(24)
         .frame(minWidth: 450, minHeight: 300)
     }
 }

@@ -22,13 +22,13 @@ struct MenuBarView: View {
         HStack(spacing: 8) {
             Image(systemName: "waveform.circle.fill")
                 .font(.title2)
-                .foregroundStyle(.blue)
+                .foregroundStyle(AirScriptTheme.accent)
             Text("AirScript")
-                .font(.headline)
+                .font(AirScriptTheme.fontSectionTitle)
             Spacer()
             Text("v1.0")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .font(AirScriptTheme.fontCaption2)
+                .foregroundStyle(AirScriptTheme.textTertiary)
         }
     }
 
@@ -40,27 +40,26 @@ struct MenuBarView: View {
                         .fill(.red)
                         .frame(width: 8, height: 8)
                     Text("Recording (\(appState.recordingMode.rawValue))")
-                        .font(.subheadline)
+                        .font(AirScriptTheme.fontBodyMedium)
                 }
             } else if appState.isProcessing {
                 HStack(spacing: 6) {
                     ProgressView()
                         .controlSize(.small)
                     Text("Processing...")
-                        .font(.subheadline)
+                        .font(AirScriptTheme.fontBodyMedium)
                 }
             } else {
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(.green)
+                        .fill(AirScriptTheme.statusSuccess)
                         .frame(width: 8, height: 8)
                     Text("Ready")
-                        .font(.subheadline)
+                        .font(AirScriptTheme.fontBodyMedium)
                         .foregroundStyle(.secondary)
                 }
             }
 
-            // Permission indicators
             HStack(spacing: 12) {
                 permissionDot("Mic", ok: appState.hasMicrophonePermission)
                 permissionDot("AX", ok: appState.hasAccessibilityPermission)
@@ -73,7 +72,7 @@ struct MenuBarView: View {
     private func permissionDot(_ label: String, ok: Bool) -> some View {
         HStack(spacing: 3) {
             Circle()
-                .fill(ok ? .green : .red)
+                .fill(ok ? AirScriptTheme.statusSuccess : AirScriptTheme.statusError)
                 .frame(width: 6, height: 6)
             Text(label)
                 .foregroundStyle(.secondary)
@@ -84,7 +83,6 @@ struct MenuBarView: View {
         VStack(spacing: 4) {
             Button {
                 NSApp.activate(ignoringOtherApps: true)
-                // Open/bring to front the main window
                 if let window = NSApp.windows.first(where: {
                     $0.title.contains("AirScript") &&
                     !$0.title.contains("Setup") &&

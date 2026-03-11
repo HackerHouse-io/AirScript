@@ -15,7 +15,7 @@ struct DictionarySettingsView: View {
                 TextField("Spoken", text: $newSpoken)
                     .textFieldStyle(.roundedBorder)
                 Image(systemName: "arrow.right")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AirScriptTheme.textSecondary)
                 TextField("Written", text: $newWritten)
                     .textFieldStyle(.roundedBorder)
                 Button("Add") {
@@ -43,15 +43,15 @@ struct DictionarySettingsView: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text(entry.spoken)
-                                .font(.body)
+                                .font(AirScriptTheme.fontBodyPrimary)
                             Text(entry.written)
-                                .font(.caption)
-                                .foregroundStyle(.blue)
+                                .font(AirScriptTheme.fontCaption)
+                                .foregroundStyle(AirScriptTheme.accent)
                         }
                         Spacer()
                         Text("\(entry.usageCount)x")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(AirScriptTheme.fontMono)
+                            .foregroundStyle(AirScriptTheme.textSecondary)
                     }
                 }
                 .onDelete(perform: deleteEntries)

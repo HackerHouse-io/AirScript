@@ -48,11 +48,11 @@ struct AppSettingsView: View {
                             .padding(.horizontal, 12)
                             .background(
                                 selectedSection == section
-                                    ? Color.blue.opacity(0.15)
+                                    ? AirScriptTheme.accent.opacity(0.15)
                                     : Color.clear
                             )
                             .foregroundStyle(
-                                selectedSection == section ? .blue : .primary
+                                selectedSection == section ? AirScriptTheme.accent : .primary
                             )
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
@@ -65,10 +65,10 @@ struct AppSettingsView: View {
                 Button("Done") { dismiss() }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
+                    .tint(AirScriptTheme.accent)
                     .padding(16)
             }
             .frame(width: 180)
-            .background(Color(nsColor: .windowBackgroundColor))
 
             Divider()
 

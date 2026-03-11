@@ -15,69 +15,38 @@ struct HomePage: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
-                heroBanner
+            VStack(spacing: 16) {
+                PageHeader(title: "Home", subtitle: "Your voice, your words")
+
+                // Status pills
+                HStack(spacing: 12) {
+                    statusPill(
+                        icon: "mic",
+                        label: appState.hasMicrophonePermission ? "Mic Ready" : "Mic Needed",
+                        ok: appState.hasMicrophonePermission
+                    )
+                    statusPill(
+                        icon: "hand.raised",
+                        label: appState.hasAccessibilityPermission ? "Accessibility OK" : "Accessibility Needed",
+                        ok: appState.hasAccessibilityPermission
+                    )
+                    statusPill(
+                        icon: "brain",
+                        label: appState.isWhisperModelLoaded ? "Model Loaded" : "Model Not Loaded",
+                        ok: appState.isWhisperModelLoaded
+                    )
+                    Spacer()
+                }
+                .padding(.horizontal)
+
                 statsSection
                 recentActivitySection
             }
-            .padding(24)
+            .padding(.bottom, 8)
         }
-        .background(Color(nsColor: .windowBackgroundColor))
     }
 
-    // MARK: - Hero Banner
-
-    private var heroBanner: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Welcome to AirScript")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white)
-
-                    Text("Your voice, your words. Dictate naturally and let AI handle the rest — punctuation, grammar, and formatting, all processed locally on your Mac.")
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.85))
-                        .lineLimit(3)
-                }
-
-                Spacer()
-
-                Image(systemName: "waveform.circle.fill")
-                    .font(.system(size: 56))
-                    .foregroundStyle(.white.opacity(0.3))
-            }
-
-            // Quick status
-            HStack(spacing: 16) {
-                statusPill(
-                    icon: "mic.fill",
-                    label: appState.hasMicrophonePermission ? "Mic Ready" : "Mic Needed",
-                    ok: appState.hasMicrophonePermission
-                )
-                statusPill(
-                    icon: "hand.raised.fill",
-                    label: appState.hasAccessibilityPermission ? "Accessibility OK" : "Accessibility Needed",
-                    ok: appState.hasAccessibilityPermission
-                )
-                statusPill(
-                    icon: "brain",
-                    label: appState.isWhisperModelLoaded ? "Model Loaded" : "Model Not Loaded",
-                    ok: appState.isWhisperModelLoaded
-                )
-            }
-        }
-        .padding(24)
-        .background(
-            LinearGradient(
-                colors: [Color.blue, Color.blue.opacity(0.7)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
+    // MARK: - Status Pill
 
     private func statusPill(icon: String, label: String, ok: Bool) -> some View {
         HStack(spacing: 4) {
@@ -88,110 +57,115 @@ struct HomePage: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(ok ? Color.green.opacity(0.3) : Color.red.opacity(0.3))
-        .foregroundStyle(.white)
+        .background(ok ? AirScriptTheme.statusSuccess.opacity(0.12) : AirScriptTheme.statusError.opacity(0.12))
+        .foregroundStyle(ok ? AirScriptTheme.statusSuccess : AirScriptTheme.statusError)
         .clipShape(Capsule())
     }
 
-    // MARK: - Stats
+    // MARK: - Stats (Bento Grid)
 
     private var statsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Your Stats")
-                .font(.headline)
+            SectionHeader(title: "Your Stats")
 
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4), spacing: 12) {
-                statCard(value: "\(todayWords)", label: "Words Today", icon: "character.cursor.ibeam")
-                statCard(value: "\(weekWords)", label: "This Week", icon: "calendar")
-                statCard(value: "\(todaySessions)", label: "Sessions Today", icon: "mic.fill")
-                statCard(value: timeSaved, label: "Time Saved", icon: "clock.arrow.circlepath")
+            HStack(spacing: 12) {
+                statCard(label: "Words Today", value: "\(todayWords)", detail: "\(weekWords) this week", index: 0, accent: true)
+                statCard(label: "Sessions Today", value: "\(todaySessions)", detail: "\(totalSessions) total", index: 1)
+                statCard(label: "Time Saved", value: timeSaved, detail: "vs typing", index: 2)
             }
+            .padding(.horizontal)
         }
     }
 
-    private func statCard(value: String, label: String, icon: String) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(.blue)
-
-            Text(value)
-                .font(.title2)
-                .fontWeight(.bold)
-                .monospacedDigit()
-
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+    private func statCard(label: String, value: String, detail: String, index: Int, accent: Bool = false) -> some View {
+        GlassCard {
+            VStack(spacing: 6) {
+                Text(label)
+                    .font(AirScriptTheme.fontStatLabel)
+                    .foregroundStyle(AirScriptTheme.textSecondary)
+                Text(value)
+                    .font(AirScriptTheme.fontStatValue)
+                    .foregroundStyle(accent ? AirScriptTheme.accent : .primary)
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                Text(detail)
+                    .font(AirScriptTheme.fontCaption)
+                    .foregroundStyle(AirScriptTheme.textSecondary)
+            }
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .staggeredAppear(index: index)
     }
 
     // MARK: - Recent Activity
 
     private var recentActivitySection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Recent Transcriptions")
-                    .font(.headline)
-                Spacer()
-                Text("\(recentTranscripts.count) total")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            SectionHeader(
+                title: "Recent Transcriptions",
+                trailing: {
+                    Text("\(recentTranscripts.count) total")
+                        .font(AirScriptTheme.fontCaption)
+                        .foregroundStyle(AirScriptTheme.textTertiary)
+                }
+            )
 
             if recentTranscripts.isEmpty {
-                emptyState
+                EmptyStateView(
+                    icon: "waveform",
+                    title: "No transcriptions yet",
+                    subtitle: "Hold fn to start dictating"
+                )
+                .frame(height: 160)
             } else {
-                VStack(spacing: 1) {
-                    ForEach(recentTranscripts.prefix(20)) { transcript in
-                        transcriptRow(transcript)
+                GlassCard(padding: 0) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(Array(recentTranscripts.prefix(20).enumerated()), id: \.element.id) { index, transcript in
+                            if index > 0 { Divider() }
+                            HoverRow {
+                                transcriptRowContent(transcript)
+                            }
+                            .staggeredAppear(index: index)
+                        }
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal)
             }
         }
     }
 
-    private func transcriptRow(_ transcript: Transcript) -> some View {
+    private func transcriptRowContent(_ transcript: Transcript) -> some View {
         HStack(spacing: 12) {
             Image(systemName: transcript.wasCommand ? "terminal" : "text.quote")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(AirScriptTheme.fontSubtitle)
+                .foregroundStyle(AirScriptTheme.accentMuted)
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(transcript.text)
-                    .font(.subheadline)
+                    .font(AirScriptTheme.fontBodyPrimary)
                     .lineLimit(1)
 
                 HStack(spacing: 8) {
                     if let appName = transcript.appName {
-                        Text(appName)
-                            .font(.caption2)
-                            .foregroundStyle(.blue)
+                        StatusBadge(text: appName, style: .mono)
                     }
                     Text(formatDuration(transcript.duration))
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .font(AirScriptTheme.fontCaption2)
+                        .foregroundStyle(AirScriptTheme.textSecondary)
                     Text("\(transcript.wordCount) words")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .font(AirScriptTheme.fontCaption2)
+                        .foregroundStyle(AirScriptTheme.textSecondary)
                 }
             }
 
             Spacer()
 
             Text(transcript.createdAt, style: .relative)
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .font(AirScriptTheme.fontCaption2)
+                .foregroundStyle(AirScriptTheme.textTertiary)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .contentShape(Rectangle())
         .contextMenu {
             Button("Copy") {
                 NSPasteboard.general.clearContents()
@@ -202,24 +176,6 @@ struct HomePage: View {
                 modelContext.delete(transcript)
             }
         }
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "waveform.path")
-                .font(.system(size: 40))
-                .foregroundStyle(.secondary)
-            Text("No transcriptions yet")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text("Hold fn to start dictating")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     // MARK: - Computed Stats
@@ -238,9 +194,12 @@ struct HomePage: View {
     }
 
     private var weekWords: Int {
-        let calendar = Calendar.current
-        let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
         return allStats.filter { $0.date >= weekAgo }.reduce(0) { $0 + $1.wordsTranscribed }
+    }
+
+    private var totalSessions: Int {
+        allStats.reduce(0) { $0 + $1.sessionsCount }
     }
 
     private var timeSaved: String {

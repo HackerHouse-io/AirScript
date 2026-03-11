@@ -6,7 +6,7 @@ struct StatsView: View {
     var body: some View {
         VStack(spacing: 12) {
             Text("Productivity")
-                .font(.headline)
+                .font(AirScriptTheme.fontSectionTitle)
 
             LazyVGrid(columns: [
                 GridItem(.flexible()),
@@ -24,23 +24,24 @@ struct StatsView: View {
     }
 
     private func statCard(_ title: String, value: String, unit: String) -> some View {
-        VStack(spacing: 4) {
-            Text(value)
-                .font(.title2.weight(.bold))
-                .foregroundStyle(.blue)
-            Text(unit.isEmpty ? title : "\(title)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            if !unit.isEmpty {
-                Text(unit)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+        GlassCard(hoverLift: true) {
+            VStack(spacing: 4) {
+                Text(value)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(AirScriptTheme.accent)
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                Text(unit.isEmpty ? title : "\(title)")
+                    .font(AirScriptTheme.fontCaption)
+                    .foregroundStyle(AirScriptTheme.textSecondary)
+                if !unit.isEmpty {
+                    Text(unit)
+                        .font(.caption2)
+                        .foregroundStyle(AirScriptTheme.textTertiary)
+                }
             }
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
-        .padding(8)
-        .background(.secondary.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     private func formatTimeSaved(_ seconds: TimeInterval) -> String {

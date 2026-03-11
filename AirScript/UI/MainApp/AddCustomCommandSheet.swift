@@ -10,18 +10,9 @@ struct AddCustomCommandSheet: View {
     @State private var actionValue = ""
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Add Custom Command")
-                .font(.headline)
-
-            VStack(alignment: .leading, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Trigger phrase")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextField("e.g. open google", text: $trigger)
-                        .textFieldStyle(.roundedBorder)
-                }
+        AirSheet(title: "Add Custom Command") {
+            VStack(spacing: 16) {
+                AirTextField(label: "Trigger phrase", text: $trigger, placeholder: "e.g. open google")
 
                 Picker("Action type", selection: $actionType) {
                     Text("Keystroke").tag(CustomCommandActionType.keystroke)
@@ -29,34 +20,29 @@ struct AddCustomCommandSheet: View {
                     Text("Open URL").tag(CustomCommandActionType.openURL)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(valueLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextField(valuePlaceholder, text: $actionValue)
-                        .textFieldStyle(.roundedBorder)
-                }
-            }
+                AirTextField(label: valueLabel, text: $actionValue, placeholder: valuePlaceholder)
 
-            HStack {
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Spacer()
-                Button("Add") {
-                    let command = CustomVoiceCommand(
-                        trigger: trigger.lowercased(),
-                        actionType: actionType,
-                        actionValue: actionValue
-                    )
-                    modelContext.insert(command)
-                    dismiss()
+                HStack {
+                    Button("Cancel") { dismiss() }
+                        .keyboardShortcut(.cancelAction)
+                    Spacer()
+                    Button("Add") {
+                        let command = CustomVoiceCommand(
+                            trigger: trigger.lowercased(),
+                            actionType: actionType,
+                            actionValue: actionValue
+                        )
+                        modelContext.insert(command)
+                        dismiss()
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(trigger.isEmpty || actionValue.isEmpty)
+                    .buttonStyle(.borderedProminent)
+                    .tint(AirScriptTheme.accent)
                 }
-                .keyboardShortcut(.defaultAction)
-                .disabled(trigger.isEmpty || actionValue.isEmpty)
-                .buttonStyle(.borderedProminent)
             }
+            .padding()
         }
-        .padding(24)
         .frame(width: 400)
     }
 

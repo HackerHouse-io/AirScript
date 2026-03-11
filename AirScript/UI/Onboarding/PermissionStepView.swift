@@ -6,13 +6,13 @@ struct PermissionStepView: View {
     var body: some View {
         VStack(spacing: 20) {
             Text("Grant Permissions")
-                .font(.title2)
+                .font(AirScriptTheme.fontSectionTitle)
             Text("AirScript needs these permissions to work properly.")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(AirScriptTheme.textSecondary)
 
             VStack(spacing: 12) {
                 permissionCard(
-                    icon: "mic.fill",
+                    icon: "mic",
                     title: "Microphone",
                     description: "Record your voice for dictation",
                     granted: appState.hasMicrophonePermission,
@@ -24,7 +24,7 @@ struct PermissionStepView: View {
                 )
 
                 permissionCard(
-                    icon: "hand.raised.fill",
+                    icon: "hand.raised",
                     title: "Accessibility",
                     description: "Read screen context and inject text",
                     granted: appState.hasAccessibilityPermission,
@@ -34,7 +34,7 @@ struct PermissionStepView: View {
                 )
 
                 permissionCard(
-                    icon: "keyboard.fill",
+                    icon: "keyboard",
                     title: "Input Monitoring",
                     description: "Listen for the fn key to start dictation",
                     granted: appState.hasInputMonitoringPermission,
@@ -67,18 +67,18 @@ struct PermissionStepView: View {
             Image(systemName: icon)
                 .font(.title2)
                 .frame(width: 40)
-                .foregroundStyle(granted ? .green : .blue)
+                .foregroundStyle(granted ? AirScriptTheme.statusSuccess : AirScriptTheme.accent)
 
             VStack(alignment: .leading) {
-                Text(title).font(.subheadline.weight(.medium))
-                Text(description).font(.caption).foregroundStyle(.secondary)
+                Text(title).font(AirScriptTheme.fontBodyMedium)
+                Text(description).font(AirScriptTheme.fontCaption).foregroundStyle(AirScriptTheme.textSecondary)
             }
 
             Spacer()
 
             if granted {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(AirScriptTheme.statusSuccess)
             } else {
                 Button("Grant") { action() }
                     .buttonStyle(.bordered)
@@ -86,7 +86,6 @@ struct PermissionStepView: View {
             }
         }
         .padding()
-        .background(.secondary.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: AirScriptTheme.Radius.md))
     }
 }

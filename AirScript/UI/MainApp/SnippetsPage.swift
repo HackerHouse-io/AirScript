@@ -21,110 +21,65 @@ struct SnippetsPage: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 20) {
-                    heroBanner
-                    controlBar
-                    snippetList
+                    PageHeader(title: "Snippets")
+
+                    // Controls
+                    HStack(spacing: 12) {
+                        AirSearchBar(text: $searchText, placeholder: "Search snippets...")
+                        Spacer()
+                        Button {
+                            showingAddSheet = true
+                        } label: {
+                            Label("Add Snippet", systemImage: "plus")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(AirScriptTheme.accent)
+                    }
+                    .padding(.horizontal)
+
+                    // Snippet list
+                    let filtered = filteredSnippets
+                    GlassCard(padding: 0) {
+                        VStack(spacing: 0) {
+                            if filtered.isEmpty {
+                                EmptyStateView(
+                                    icon: "text.insert",
+                                    title: searchText.isEmpty ? "No snippets yet" : "No matches found",
+                                    subtitle: searchText.isEmpty ? "Create a snippet to expand text with your voice" : nil
+                                )
+                                .frame(height: 200)
+                            } else {
+                                ForEach(Array(filtered.enumerated()), id: \.element.id) { index, snippet in
+                                    if index > 0 { Divider() }
+                                    HoverRow {
+                                        snippetRowContent(snippet)
+                                    }
+                                    .staggeredAppear(index: index)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
                 }
-                .padding(24)
+                .padding(.bottom, 8)
             }
         }
-        .background(Color(nsColor: .windowBackgroundColor))
         .sheet(isPresented: $showingAddSheet) {
             AddSnippetSheet()
         }
     }
 
-    // MARK: - Hero Banner
-
-    private var heroBanner: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Snippets")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-
-                Text("Create voice-activated shortcuts. Say a trigger phrase to instantly expand text, run shell commands, or simulate keystrokes.")
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
-                    .lineLimit(2)
-            }
-
-            Spacer()
-
-            Image(systemName: "text.insert")
-                .font(.system(size: 48))
-                .foregroundStyle(.white.opacity(0.3))
-        }
-        .padding(24)
-        .background(
-            LinearGradient(
-                colors: [Color.orange, Color.orange.opacity(0.7)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    // MARK: - Controls
-
-    private var controlBar: some View {
-        HStack(spacing: 12) {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                TextField("Search snippets...", text: $searchText)
-                    .textFieldStyle(.plain)
-            }
-            .padding(8)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-            Spacer()
-
-            Button {
-                showingAddSheet = true
-            } label: {
-                Label("Add Snippet", systemImage: "plus")
-            }
-            .buttonStyle(.borderedProminent)
-        }
-    }
-
-    // MARK: - Snippet List
-
-    private var snippetList: some View {
-        VStack(spacing: 0) {
-            if filteredSnippets.isEmpty {
-                emptyState
-            } else {
-                ForEach(filteredSnippets) { snippet in
-                    snippetRow(snippet)
-                    if snippet.id != filteredSnippets.last?.id {
-                        Divider()
-                    }
-                }
-            }
-        }
-        .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-
-    private func snippetRow(_ snippet: Snippet) -> some View {
+    private func snippetRowContent(_ snippet: Snippet) -> some View {
         HStack(spacing: 16) {
-            // Type icon
             Image(systemName: snippetIcon(for: snippet.actionType))
                 .font(.title3)
-                .foregroundStyle(snippetColor(for: snippet.actionType))
+                .foregroundStyle(AirScriptTheme.accentMuted)
                 .frame(width: 32)
 
-            // Trigger and value
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
                     Text("\"\(snippet.trigger)\"")
-                        .font(.body)
-                        .fontWeight(.medium)
+                        .font(AirScriptTheme.fontBodyMedium)
 
                     Image(systemName: "arrow.right")
                         .font(.caption2)
@@ -132,26 +87,18 @@ struct SnippetsPage: View {
                 }
 
                 Text(snippet.value)
-                    .font(.caption)
+                    .font(AirScriptTheme.fontMono)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
 
             Spacer()
 
-            // Type badge
-            Text(snippetTypeLabel(for: snippet.actionType))
-                .font(.caption2)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(snippetColor(for: snippet.actionType).opacity(0.15))
-                .foregroundStyle(snippetColor(for: snippet.actionType))
-                .clipShape(Capsule())
+            StatusBadge(text: snippetTypeLabel(for: snippet.actionType), style: .mono)
 
-            // Usage
             VStack(spacing: 2) {
                 Text("\(snippet.usageCount)")
-                    .font(.caption)
+                    .font(AirScriptTheme.fontMono)
                     .fontWeight(.medium)
                     .monospacedDigit()
                 Text("uses")
@@ -160,7 +107,6 @@ struct SnippetsPage: View {
             }
             .frame(width: 40)
 
-            // Delete
             Button {
                 modelContext.delete(snippet)
             } label: {
@@ -170,26 +116,6 @@ struct SnippetsPage: View {
             }
             .buttonStyle(.borderless)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "text.insert")
-                .font(.system(size: 36))
-                .foregroundStyle(.secondary)
-            Text(searchText.isEmpty ? "No snippets yet" : "No matches found")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            if searchText.isEmpty {
-                Text("Create a snippet to expand text with your voice")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
     }
 
     private func snippetIcon(for type: SnippetActionType) -> String {
@@ -197,14 +123,6 @@ struct SnippetsPage: View {
         case .text: "doc.text"
         case .shell: "terminal"
         case .keystroke: "keyboard"
-        }
-    }
-
-    private func snippetColor(for type: SnippetActionType) -> Color {
-        switch type {
-        case .text: .blue
-        case .shell: .green
-        case .keystroke: .orange
         }
     }
 
@@ -228,18 +146,9 @@ struct AddSnippetSheet: View {
     @State private var actionType: SnippetActionType = .text
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Add Snippet")
-                .font(.headline)
-
-            VStack(alignment: .leading, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Trigger phrase")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextField("e.g. insert signature", text: $trigger)
-                        .textFieldStyle(.roundedBorder)
-                }
+        AirSheet(title: "Add Snippet") {
+            VStack(spacing: 16) {
+                AirTextField(label: "Trigger phrase", text: $trigger, placeholder: "e.g. insert signature")
 
                 Picker("Type", selection: $actionType) {
                     Text("Text").tag(SnippetActionType.text)
@@ -248,9 +157,10 @@ struct AddSnippetSheet: View {
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(valueLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text(valueLabel.uppercased())
+                        .font(AirScriptTheme.fontBadge)
+                        .foregroundStyle(AirScriptTheme.textTertiary)
+                        .tracking(0.5)
                     if actionType == .text {
                         TextEditor(text: $value)
                             .font(.body)
@@ -261,27 +171,28 @@ struct AddSnippetSheet: View {
                             .textFieldStyle(.roundedBorder)
                     }
                 }
-            }
 
-            HStack {
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Spacer()
-                Button("Add") {
-                    let snippet = Snippet(
-                        trigger: trigger,
-                        actionType: actionType,
-                        value: value
-                    )
-                    modelContext.insert(snippet)
-                    dismiss()
+                HStack {
+                    Button("Cancel") { dismiss() }
+                        .keyboardShortcut(.cancelAction)
+                    Spacer()
+                    Button("Add") {
+                        let snippet = Snippet(
+                            trigger: trigger,
+                            actionType: actionType,
+                            value: value
+                        )
+                        modelContext.insert(snippet)
+                        dismiss()
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(trigger.isEmpty || value.isEmpty)
+                    .buttonStyle(.borderedProminent)
+                    .tint(AirScriptTheme.accent)
                 }
-                .keyboardShortcut(.defaultAction)
-                .disabled(trigger.isEmpty || value.isEmpty)
-                .buttonStyle(.borderedProminent)
             }
+            .padding()
         }
-        .padding(24)
         .frame(width: 400)
     }
 

@@ -9,46 +9,31 @@ struct AddAliasSheet: View {
     @State private var appName = ""
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Add App Alias")
-                .font(.headline)
+        AirSheet(title: "Add App Alias") {
+            VStack(spacing: 16) {
+                AirTextField(label: "Say", text: $spokenName, placeholder: "e.g. my editor")
+                AirTextField(label: "Opens", text: $appName, placeholder: "e.g. Cursor")
 
-            VStack(alignment: .leading, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Say")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextField("e.g. my editor", text: $spokenName)
-                        .textFieldStyle(.roundedBorder)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Opens")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextField("e.g. Cursor", text: $appName)
-                        .textFieldStyle(.roundedBorder)
+                HStack {
+                    Button("Cancel") { dismiss() }
+                        .keyboardShortcut(.cancelAction)
+                    Spacer()
+                    Button("Add") {
+                        let alias = CustomAppAlias(
+                            spokenName: spokenName.lowercased(),
+                            appName: appName
+                        )
+                        modelContext.insert(alias)
+                        dismiss()
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(spokenName.isEmpty || appName.isEmpty)
+                    .buttonStyle(.borderedProminent)
+                    .tint(AirScriptTheme.accent)
                 }
             }
-
-            HStack {
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Spacer()
-                Button("Add") {
-                    let alias = CustomAppAlias(
-                        spokenName: spokenName.lowercased(),
-                        appName: appName
-                    )
-                    modelContext.insert(alias)
-                    dismiss()
-                }
-                .keyboardShortcut(.defaultAction)
-                .disabled(spokenName.isEmpty || appName.isEmpty)
-                .buttonStyle(.borderedProminent)
-            }
+            .padding()
         }
-        .padding(24)
         .frame(width: 360)
     }
 }

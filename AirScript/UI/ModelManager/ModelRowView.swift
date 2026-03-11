@@ -10,20 +10,14 @@ struct ModelRowView: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(model.displayName)
-                        .font(.subheadline.weight(.medium))
+                        .font(AirScriptTheme.fontBodyMedium)
                     if model.isRecommended {
-                        Text("Recommended")
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(.blue.opacity(0.15))
-                            .foregroundStyle(.blue)
-                            .clipShape(Capsule())
+                        StatusBadge(text: "Recommended", style: .mono)
                     }
                 }
                 Text(model.sizeDescription)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(AirScriptTheme.fontCaption)
+                    .foregroundStyle(AirScriptTheme.textSecondary)
             }
 
             Spacer()
@@ -34,12 +28,12 @@ struct ModelRowView: View {
             } else if model.isDownloaded {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(AirScriptTheme.statusSuccess)
                     Button("Delete", role: .destructive) {
                         onDelete()
                     }
                     .buttonStyle(.borderless)
-                    .font(.caption)
+                    .font(AirScriptTheme.fontCaption)
                 }
             } else {
                 Button("Download") {

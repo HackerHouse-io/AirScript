@@ -33,13 +33,13 @@ struct FlowBarView: View {
             if isRecording {
                 Text(formatDuration(duration))
                     .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(.white.opacity(0.8))
+                    .foregroundStyle(.primary.opacity(0.8))
             }
 
             if !partialTranscript.isEmpty && state != .processing {
                 Text(partialTranscript)
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .frame(maxWidth: 200)
@@ -48,16 +48,16 @@ struct FlowBarView: View {
             if state == .command {
                 Image(systemName: "terminal.fill")
                     .font(.caption)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(AirScriptTheme.accent)
                 Text("Command")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(backgroundColor)
-        .clipShape(Capsule())
+        .background(.thickMaterial, in: Capsule())
+        .shadow(color: .black.opacity(0.15), radius: 8, y: 2)
         .overlay(
             PulsingBorderView(
                 color: borderColor,
@@ -73,25 +73,21 @@ struct FlowBarView: View {
 
     private var barsColor: Color {
         switch state {
-        case .recordingPTT: .red
-        case .recordingHandsFree: .white
-        case .command: .blue
+        case .recordingPTT: AirScriptTheme.statusError
+        case .recordingHandsFree: .primary
+        case .command: AirScriptTheme.accent
         default: .gray
         }
     }
 
     private var borderColor: Color {
         switch state {
-        case .recordingPTT: .red
-        case .recordingHandsFree: .white
-        case .command: .blue
-        case .error: .orange
+        case .recordingPTT: AirScriptTheme.statusError
+        case .recordingHandsFree: .primary
+        case .command: AirScriptTheme.accent
+        case .error: AirScriptTheme.accentWarm
         default: .clear
         }
-    }
-
-    private var backgroundColor: Color {
-        Color.black.opacity(0.85)
     }
 
     private func formatDuration(_ duration: TimeInterval) -> String {

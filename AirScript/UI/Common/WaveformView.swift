@@ -26,7 +26,7 @@ struct WaveformView: View {
                     let rect = CGRect(x: x, y: y, width: barWidth, height: height)
                     let path = RoundedRectangle(cornerRadius: barWidth / 2)
                         .path(in: rect)
-                    context.fill(path, with: .color(.blue.opacity(0.7)))
+                    context.fill(path, with: .color(AirScriptTheme.accent.opacity(0.7)))
                 }
             }
         }

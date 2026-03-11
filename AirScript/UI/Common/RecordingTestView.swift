@@ -16,7 +16,7 @@ struct RecordingTestView: View {
     var body: some View {
         VStack(spacing: 16) {
             Text("Recording Test")
-                .font(.headline)
+                .font(AirScriptTheme.fontSectionTitle)
 
             audioLevelMeter
 
@@ -29,7 +29,7 @@ struct RecordingTestView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(isRecording ? .red : .blue)
+                .tint(isRecording ? .red : AirScriptTheme.accent)
                 .disabled(isProcessing)
 
                 Toggle("AI Cleanup", isOn: $enableLLM)
@@ -52,16 +52,16 @@ struct RecordingTestView: View {
                     HStack {
                         Spacer()
                         Text(String(format: "%.2fs", processingTime))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(AirScriptTheme.fontMono)
+                            .foregroundStyle(AirScriptTheme.textSecondary)
                     }
                 }
             }
 
             if let error {
                 Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.red)
+                    .font(AirScriptTheme.fontCaption)
+                    .foregroundStyle(AirScriptTheme.statusError)
             }
 
             Spacer()
@@ -76,14 +76,13 @@ struct RecordingTestView: View {
     private func resultSection(title: String, text: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.subheadline.weight(.medium))
+                .font(AirScriptTheme.fontBodyMedium)
             Text(text)
-                .font(.body)
+                .font(AirScriptTheme.fontBodyPrimary)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(8)
-                .background(.secondary.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: AirScriptTheme.Radius.sm))
         }
     }
 
@@ -102,9 +101,9 @@ struct RecordingTestView: View {
 
     private var levelColor: Color {
         let level = audioPipeline.audioLevel * 10
-        if level > 0.8 { return .red }
+        if level > 0.8 { return AirScriptTheme.statusError }
         if level > 0.5 { return .yellow }
-        return .green
+        return AirScriptTheme.statusSuccess
     }
 
     private func toggleRecording() {

@@ -9,95 +9,90 @@ struct TranscriptDetailView: View {
     var onDelete: (() -> Void)?
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text(transcript.createdAt, style: .date)
-                            .font(.headline)
-                        Text(transcript.createdAt, style: .time)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    if let appName = transcript.appName {
-                        Label(appName, systemImage: "app")
-                            .font(.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(.secondary.opacity(0.1))
-                            .clipShape(Capsule())
-                    }
-                }
-
-                // Metadata
-                HStack(spacing: 16) {
-                    metadataItem("Duration", value: formatDuration(transcript.duration))
-                    metadataItem("Words", value: "\(transcript.wordCount)")
-                    metadataItem("WPM", value: String(format: "%.0f", transcript.wordsPerMinute))
-                    metadataItem("Model", value: transcript.model)
-                }
-
-                Divider()
-
-                // Toggle raw/processed
-                Toggle("Show raw ASR text", isOn: $showRawText)
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
-
-                // Text content
-                Text(showRawText ? transcript.rawText : transcript.text)
-                    .font(.body)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(.secondary.opacity(0.05))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                // Actions
-                HStack {
-                    Button("Copy") {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(transcript.text, forType: .string)
-                    }
-                    .buttonStyle(.bordered)
-
-                    Button("Re-inject") {
-                        Task {
-                            await TextInjector.inject(text: transcript.text)
+        AirSheet(title: "Transcript Detail") {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Header
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(transcript.createdAt, style: .date)
+                                .font(AirScriptTheme.fontSectionTitle)
+                            Text(transcript.createdAt, style: .time)
+                                .font(AirScriptTheme.fontSubtitle)
+                                .foregroundStyle(AirScriptTheme.textSecondary)
+                        }
+                        Spacer()
+                        if let appName = transcript.appName {
+                            StatusBadge(text: appName, style: .mono)
                         }
                     }
-                    .buttonStyle(.bordered)
 
-                    Spacer()
+                    // Metadata
+                    HStack(spacing: 16) {
+                        metadataItem("Duration", value: formatDuration(transcript.duration))
+                        metadataItem("Words", value: "\(transcript.wordCount)")
+                        metadataItem("WPM", value: String(format: "%.0f", transcript.wordsPerMinute))
+                        metadataItem("Model", value: transcript.model)
+                    }
 
-                    Button("Delete", role: .destructive) {
-                        showDeleteConfirmation = true
+                    Divider()
+
+                    Toggle("Show raw ASR text", isOn: $showRawText)
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+
+                    // Text content
+                    Text(showRawText ? transcript.rawText : transcript.text)
+                        .font(AirScriptTheme.fontBodyPrimary)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: AirScriptTheme.Radius.md))
+
+                    // Actions
+                    HStack {
+                        Button("Copy") {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(transcript.text, forType: .string)
+                        }
+                        .buttonStyle(.bordered)
+
+                        Button("Re-inject") {
+                            Task {
+                                await TextInjector.inject(text: transcript.text)
+                            }
+                        }
+                        .buttonStyle(.bordered)
+
+                        Spacer()
+
+                        Button("Delete", role: .destructive) {
+                            showDeleteConfirmation = true
+                        }
+                        .buttonStyle(.bordered)
                     }
-                    .buttonStyle(.bordered)
-                }
-                .alert("Delete Transcript", isPresented: $showDeleteConfirmation) {
-                    Button("Delete", role: .destructive) {
-                        modelContext.delete(transcript)
-                        onDelete?()
+                    .alert("Delete Transcript", isPresented: $showDeleteConfirmation) {
+                        Button("Delete", role: .destructive) {
+                            modelContext.delete(transcript)
+                            onDelete?()
+                        }
+                        Button("Cancel", role: .cancel) {}
+                    } message: {
+                        Text("This transcript will be permanently deleted.")
                     }
-                    Button("Cancel", role: .cancel) {}
-                } message: {
-                    Text("This transcript will be permanently deleted.")
                 }
+                .padding()
             }
-            .padding()
         }
     }
 
     private func metadataItem(_ label: String, value: String) -> some View {
         VStack {
             Text(value)
-                .font(.subheadline.weight(.medium))
+                .font(AirScriptTheme.fontBodyMedium)
             Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                .font(AirScriptTheme.fontCaption2)
+                .foregroundStyle(AirScriptTheme.textSecondary)
         }
     }
 
