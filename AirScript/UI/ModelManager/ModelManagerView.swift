@@ -28,6 +28,16 @@ struct ModelManagerView: View {
                         onCancel: { modelManager.cancelDownload() }
                     )
                 }
+
+                if let error = appState.lastError {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.red)
+                        Text(error)
+                            .font(AirScriptTheme.fontCaption)
+                            .foregroundStyle(.red)
+                    }
+                }
             }
         }
         .padding()

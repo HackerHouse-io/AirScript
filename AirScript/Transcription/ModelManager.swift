@@ -35,7 +35,7 @@ struct ModelInfo: Identifiable {
         "openai_whisper-small": "Small",
         "openai_whisper-medium": "Medium",
         "openai_whisper-large-v3-v20240930": "Large v3",
-        "openai_whisper-large-v3-turbo": "Large v3 Turbo",
+        "openai_whisper-large-v3_turbo": "Large v3 Turbo",
     ]
 
     private static let llmDisplayNames: [String: String] = [
@@ -66,7 +66,7 @@ final class ModelManager {
         if ramGB >= 16 {
             return "openai_whisper-large-v3-v20240930"
         } else {
-            return "openai_whisper-small-v20240930"
+            return "openai_whisper-small"
         }
     }
 
@@ -85,7 +85,7 @@ final class ModelManager {
             ("openai_whisper-small", "Small", "~500 MB"),
             ("openai_whisper-medium", "Medium", "~1.5 GB"),
             ("openai_whisper-large-v3-v20240930", "Large v3", "~3 GB"),
-            ("openai_whisper-large-v3-turbo", "Large v3 Turbo", "~1.6 GB"),
+            ("openai_whisper-large-v3_turbo", "Large v3 Turbo", "~1.6 GB"),
         ]
 
         availableModels = models.map { (id, display, size) in
@@ -119,18 +119,22 @@ final class ModelManager {
 
         try Task.checkCancellation()
 
+        // Ensure the download base directory exists
+        try URL.ensureDirectoryExists(URL.whisperModels)
+
         let _ = try await WhisperKit.download(
             variant: modelName,
-            downloadBase: URL.whisperModels.deletingLastPathComponent()
-        ) { [weak self] progress in
-            let fraction = progress.fractionCompleted
-            Task { @MainActor [weak self] in
-                guard let self,
-                      let index = self.availableModels.firstIndex(where: { $0.id == modelName }) else { return }
-                self.availableModels[index].downloadProgress = fraction
-                onProgress?(fraction)
+            downloadBase: URL.whisperModels.deletingLastPathComponent(),
+            progressCallback: { [weak self] progress in
+                let fraction = progress.fractionCompleted
+                Task { @MainActor [weak self] in
+                    guard let self,
+                          let index = self.availableModels.firstIndex(where: { $0.id == modelName }) else { return }
+                    self.availableModels[index].downloadProgress = fraction
+                    onProgress?(fraction)
+                }
             }
-        }
+        )
 
         try Task.checkCancellation()
 
