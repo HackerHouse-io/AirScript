@@ -10,6 +10,7 @@ enum RecordingMode: String {
     case command
 }
 
+@MainActor
 @Observable
 final class AppState {
     // MARK: - Recording State
@@ -22,11 +23,18 @@ final class AppState {
     var recordingDuration: TimeInterval = 0
 
     // MARK: - Model State
-    var selectedWhisperModel = Constants.Defaults.whisperModel
-    var selectedLLMModel = Constants.Defaults.llmModel
+    var selectedWhisperModel: String = UserDefaults.standard.string(forKey: "selectedWhisperModel")
+        ?? Constants.Defaults.whisperModel {
+        didSet { UserDefaults.standard.set(selectedWhisperModel, forKey: "selectedWhisperModel") }
+    }
+    var selectedLLMModel: String = UserDefaults.standard.string(forKey: "selectedLLMModel")
+        ?? Constants.Defaults.llmModel {
+        didSet { UserDefaults.standard.set(selectedLLMModel, forKey: "selectedLLMModel") }
+    }
     var isLLMEnabled = true
     var isWhisperModelLoaded = false
     var isLLMModelLoaded = false
+    var isWhisperModelDownloading = false
     var modelDownloadProgress: Double = 0
 
     // MARK: - Feature Toggles
@@ -74,15 +82,15 @@ final class AppState {
     private var durationTimer: Timer?
     private var pendingCorrectionOriginal: String?
     private var didMuteAudio = false
+    private var whisperSwitchTask: Task<Void, Never>?
+    private var llmSwitchTask: Task<Void, Never>?
     private let logger = Logger.general
 
     init() {
         self.commandModeEngine = CommandModeEngine(llmProcessor: llmProcessor)
         setupHotkeyCallbacks()
-        DispatchQueue.main.async { [self] in
-            flowBar.setup()
-            audioFeedbackManager.setup()
-        }
+        flowBar.setup()
+        audioFeedbackManager.setup()
         logger.info("AppState initialized")
     }
 
@@ -220,6 +228,48 @@ final class AppState {
         }
     }
 
+    func switchWhisperModel(to modelName: String) {
+        guard modelName != selectedWhisperModel else { return }
+        whisperSwitchTask?.cancel()
+        selectedWhisperModel = modelName
+        transcriptionEngine.unloadModel()
+        isWhisperModelLoaded = false
+        whisperSwitchTask = Task {
+            do {
+                try await transcriptionEngine.loadModel(named: modelName)
+                guard !Task.isCancelled else { return }
+                isWhisperModelLoaded = true
+                logger.info("Switched Whisper model to: \(modelName)")
+            } catch is CancellationError {
+                // Superseded by a newer switch
+            } catch {
+                lastError = "Failed to load Whisper model: \(error.localizedDescription)"
+                logger.error("Whisper model switch failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func switchLLMModel(to modelName: String) {
+        guard modelName != selectedLLMModel else { return }
+        llmSwitchTask?.cancel()
+        selectedLLMModel = modelName
+        llmProcessor.unloadModel()
+        isLLMModelLoaded = false
+        llmSwitchTask = Task {
+            do {
+                try await llmProcessor.loadModel(named: modelName)
+                guard !Task.isCancelled else { return }
+                isLLMModelLoaded = true
+                logger.info("Switched LLM model to: \(modelName)")
+            } catch is CancellationError {
+                // Superseded by a newer switch
+            } catch {
+                lastError = "Failed to load LLM model: \(error.localizedDescription)"
+                logger.error("LLM model switch failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
     // MARK: - Permission Checks
 
     func checkPermissions() async {
@@ -281,7 +331,6 @@ final class AppState {
         }
     }
 
-    @MainActor
     private func processAndInject(samples: [Float], isCommand: Bool, duration: TimeInterval = 0) async {
         var skipDeferCleanup = false
         defer {

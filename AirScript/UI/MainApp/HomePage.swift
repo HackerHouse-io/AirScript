@@ -31,9 +31,21 @@ struct HomePage: View {
                         ok: appState.hasAccessibilityPermission
                     )
                     statusPill(
+                        icon: "waveform",
+                        label: appState.isWhisperModelDownloading
+                            ? "Whisper: \(Int(appState.modelDownloadProgress * 100))%"
+                            : appState.isWhisperModelLoaded
+                                ? "Whisper: \(ModelInfo.whisperDisplayName(for: appState.selectedWhisperModel))"
+                                : "Whisper Not Loaded",
+                        ok: appState.isWhisperModelLoaded,
+                        busy: appState.isWhisperModelDownloading
+                    )
+                    statusPill(
                         icon: "brain",
-                        label: appState.isWhisperModelLoaded ? "Model Loaded" : "Model Not Loaded",
-                        ok: appState.isWhisperModelLoaded
+                        label: appState.isLLMModelLoaded
+                            ? "LLM: \(ModelInfo.llmDisplayName(for: appState.selectedLLMModel))"
+                            : "LLM Not Loaded",
+                        ok: appState.isLLMModelLoaded
                     )
                     Spacer()
                 }
@@ -48,7 +60,7 @@ struct HomePage: View {
 
     // MARK: - Status Pill
 
-    private func statusPill(icon: String, label: String, ok: Bool) -> some View {
+    private func statusPill(icon: String, label: String, ok: Bool, busy: Bool = false) -> some View {
         HStack(spacing: 4) {
             Image(systemName: icon)
                 .font(.caption2)
@@ -57,8 +69,16 @@ struct HomePage: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(ok ? AirScriptTheme.statusSuccess.opacity(0.12) : AirScriptTheme.statusError.opacity(0.12))
-        .foregroundStyle(ok ? AirScriptTheme.statusSuccess : AirScriptTheme.statusError)
+        .background(
+            busy ? Color.orange.opacity(0.12)
+                : ok ? AirScriptTheme.statusSuccess.opacity(0.12)
+                : AirScriptTheme.statusError.opacity(0.12)
+        )
+        .foregroundStyle(
+            busy ? Color.orange
+                : ok ? AirScriptTheme.statusSuccess
+                : AirScriptTheme.statusError
+        )
         .clipShape(Capsule())
     }
 

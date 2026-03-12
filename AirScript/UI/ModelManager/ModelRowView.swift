@@ -2,8 +2,11 @@ import SwiftUI
 
 struct ModelRowView: View {
     let model: ModelInfo
-    let onDownload: () async -> Void
+    var onDownload: (() async -> Void)? = nil
     let onDelete: () -> Void
+    var isActive: Bool = false
+    var onSelect: (() -> Void)? = nil
+    var onCancel: (() -> Void)? = nil
 
     var body: some View {
         HStack {
@@ -15,27 +18,68 @@ struct ModelRowView: View {
                         StatusBadge(text: "Recommended", style: .mono)
                     }
                 }
-                Text(model.sizeDescription)
-                    .font(AirScriptTheme.fontCaption)
-                    .foregroundStyle(AirScriptTheme.textSecondary)
+                HStack(spacing: 4) {
+                    Text(model.sizeDescription)
+                        .font(AirScriptTheme.fontCaption)
+                        .foregroundStyle(AirScriptTheme.textSecondary)
+                    if let params = model.parameterCount {
+                        Text("·")
+                            .font(AirScriptTheme.fontCaption)
+                            .foregroundStyle(AirScriptTheme.textSecondary)
+                        Text(params)
+                            .font(AirScriptTheme.fontCaption)
+                            .foregroundStyle(AirScriptTheme.textSecondary)
+                    }
+                }
             }
 
             Spacer()
 
             if model.isDownloading {
-                ProgressView()
-                    .scaleEffect(0.7)
-            } else if model.isDownloaded {
                 HStack(spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(AirScriptTheme.statusSuccess)
+                    ProgressView(value: max(0, model.downloadProgress))
+                        .frame(width: 80)
+                    Text("\(Int(max(0, model.downloadProgress) * 100))%")
+                        .font(AirScriptTheme.fontCaption)
+                        .foregroundStyle(AirScriptTheme.textSecondary)
+                        .monospacedDigit()
+                    if let onCancel {
+                        Button("Cancel", role: .destructive) {
+                            onCancel()
+                        }
+                        .buttonStyle(.borderless)
+                        .font(AirScriptTheme.fontCaption)
+                    }
+                }
+            } else if isActive {
+                HStack(spacing: 8) {
+                    StatusBadge(text: "Loaded", color: AirScriptTheme.statusSuccess)
                     Button("Delete", role: .destructive) {
                         onDelete()
                     }
                     .buttonStyle(.borderless)
                     .font(AirScriptTheme.fontCaption)
                 }
-            } else {
+            } else if model.isDownloaded {
+                HStack(spacing: 8) {
+                    if let onSelect {
+                        Button("Load") {
+                            onSelect()
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                    Button("Delete", role: .destructive) {
+                        onDelete()
+                    }
+                    .buttonStyle(.borderless)
+                    .font(AirScriptTheme.fontCaption)
+                }
+            } else if !model.isDownloadable {
+                Text("Coming Soon")
+                    .font(AirScriptTheme.fontCaption)
+                    .foregroundStyle(AirScriptTheme.textTertiary)
+            } else if let onDownload {
                 Button("Download") {
                     Task { await onDownload() }
                 }
