@@ -36,6 +36,8 @@ final class AppState {
     var isLLMModelLoaded = false
     var isWhisperModelDownloading = false
     var modelDownloadProgress: Double = 0
+    var isLLMModelDownloading = false
+    var llmModelDownloadProgress: Double = 0
 
     // MARK: - Feature Toggles
     var isContextAwarenessEnabled = false

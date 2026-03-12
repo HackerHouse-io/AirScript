@@ -3,6 +3,7 @@ import SwiftUI
 struct LLMModelManagerView: View {
     @Environment(AppState.self) private var appState
     @State private var modelManager = LLMModelManager()
+    @State private var downloadError: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -21,10 +22,22 @@ struct LLMModelManagerView: View {
                 ForEach(modelManager.availableModels) { model in
                     ModelRowView(
                         model: model,
+                        onDownload: { await downloadModel(model.name) },
                         onDelete: { deleteModel(model.name) },
                         isActive: model.id == appState.selectedLLMModel && appState.isLLMModelLoaded,
-                        onSelect: { appState.switchLLMModel(to: model.name) }
+                        onSelect: { appState.switchLLMModel(to: model.name) },
+                        onCancel: { modelManager.cancelDownload() }
                     )
+                }
+
+                if let error = downloadError {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.red)
+                        Text(error)
+                            .font(AirScriptTheme.fontCaption)
+                            .foregroundStyle(.red)
+                    }
                 }
             }
         }
@@ -32,6 +45,27 @@ struct LLMModelManagerView: View {
         .frame(minWidth: 400)
         .task {
             await modelManager.fetchAvailableModels()
+        }
+    }
+
+    private func downloadModel(_ name: String) async {
+        downloadError = nil
+        appState.isLLMModelDownloading = true
+        appState.llmModelDownloadProgress = 0
+        defer {
+            appState.isLLMModelDownloading = false
+            appState.llmModelDownloadProgress = 0
+        }
+        do {
+            try await modelManager.startDownload(named: name) { [appState] progress in
+                Task { @MainActor in
+                    appState.llmModelDownloadProgress = progress
+                }
+            }
+        } catch is CancellationError {
+            // User cancelled
+        } catch {
+            downloadError = error.localizedDescription
         }
     }
 
@@ -48,7 +82,7 @@ struct LLMModelManagerView: View {
         do {
             try modelManager.deleteModel(named: name)
         } catch {
-            appState.lastError = error.localizedDescription
+            downloadError = error.localizedDescription
         }
     }
 }

@@ -42,10 +42,13 @@ struct HomePage: View {
                     )
                     statusPill(
                         icon: "brain",
-                        label: appState.isLLMModelLoaded
-                            ? "LLM: \(ModelInfo.llmDisplayName(for: appState.selectedLLMModel))"
-                            : "LLM Not Loaded",
-                        ok: appState.isLLMModelLoaded
+                        label: appState.isLLMModelDownloading
+                            ? "LLM: \(Int(appState.llmModelDownloadProgress * 100))%"
+                            : appState.isLLMModelLoaded
+                                ? "LLM: \(ModelInfo.llmDisplayName(for: appState.selectedLLMModel))"
+                                : "LLM Not Loaded",
+                        ok: appState.isLLMModelLoaded,
+                        busy: appState.isLLMModelDownloading
                     )
                     Spacer()
                 }
