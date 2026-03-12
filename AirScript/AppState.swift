@@ -376,7 +376,7 @@ final class AppState {
                 updateStats(wordCount: 0, duration: duration, wasCommand: true, modelContext: ctx)
                 try? ctx?.save()
                 audioFeedbackManager.playCommandExecuted()
-                logger.info("Command executed: \(rawText.prefix(50))")
+                logger.info("Command executed: \(String(rawText.prefix(50)))")
                 return
             }
 
@@ -390,12 +390,12 @@ final class AppState {
                     updateStats(wordCount: 0, duration: duration, wasCommand: true, modelContext: ctx)
                     try? ctx?.save()
                     audioFeedbackManager.playCommandExecuted()
-                    logger.info("Command mode LLM result: \(commandResult.prefix(50))")
+                    logger.info("Command mode LLM result: \(String(commandResult.prefix(50)))")
                     return
                 }
                 // Both router and LLM fallback failed in command mode
                 audioFeedbackManager.playError()
-                logger.info("Command mode: no handler matched: \(rawText.prefix(50))")
+                logger.info("Command mode: no handler matched: \(String(rawText.prefix(50)))")
                 return
             }
 
@@ -437,7 +437,7 @@ final class AppState {
             currentTranscript = finalText
             await TextInjector.inject(text: finalText)
             audioFeedbackManager.playTranscriptionComplete()
-            logger.info("Text injected: \"\(finalText.prefix(50))...\"")
+            logger.info("Text injected: \"\(String(finalText.prefix(50)))...\"")
 
             // Step 10.5: Log correction if this was a "correct that" replacement
             if let original = pendingCorrectionOriginal, let modelContext = ctx {

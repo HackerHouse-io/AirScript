@@ -29,7 +29,7 @@ final class TranscriptStore {
             commandAction: commandAction
         )
         context.insert(transcript)
-        logger.info("Transcript saved: \(text.prefix(50))")
+        logger.info("Transcript saved: \(String(text.prefix(50)))")
     }
 
     func search(query: String, in context: ModelContext) -> [Transcript] {
@@ -61,6 +61,6 @@ final class TranscriptStore {
 
     func delete(_ transcript: Transcript, in context: ModelContext) {
         context.delete(transcript)
-        logger.info("Transcript deleted: \(transcript.text.prefix(50))")
+        logger.info("Transcript deleted: \(String(transcript.text.prefix(50)))")
     }
 }

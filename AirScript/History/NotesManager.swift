@@ -19,7 +19,7 @@ final class NotesManager {
             audioFileURL: audioFileURL
         )
         context.insert(note)
-        logger.info("Note created: \(text.prefix(50))")
+        logger.info("Note created: \(String(text.prefix(50)))")
         return note
     }
 

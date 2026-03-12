@@ -26,7 +26,7 @@ final class LLMProcessor {
         defer { isProcessing = false }
 
         let prompt = PromptBuilder.dictationCleanup(rawText: rawText, context: context)
-        logger.debug("LLM prompt: \(prompt.prefix(100))...")
+        logger.debug("LLM prompt: \(String(prompt.prefix(100)))...")
 
         // TODO: Replace with actual MLX LLM inference
         // For now, do basic rule-based cleanup as a fallback

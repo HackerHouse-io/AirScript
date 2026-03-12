@@ -62,7 +62,7 @@ final class TranscriptionEngine {
 
         let language = results.first?.language ?? "en"
 
-        logger.info("Transcription complete in \(String(format: "%.2f", elapsed))s: \"\(fullText.prefix(50))...\"")
+        logger.info("Transcription complete in \(String(format: "%.2f", elapsed))s: \"\(String(fullText.prefix(50)))...\"")
 
         return TranscriptionResult(
             text: fullText,

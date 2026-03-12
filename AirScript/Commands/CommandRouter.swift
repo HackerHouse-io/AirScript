@@ -27,7 +27,7 @@ final class CommandRouter {
 
         switch intent {
         case .command(let action):
-            logger.info("Intent classified as command (conf: \(confidence)): \(text.prefix(50))")
+            logger.info("Intent classified as command (conf: \(confidence)): \(String(text.prefix(50)))")
             await executor.execute(action)
             return true
         case .dictation:
