@@ -29,7 +29,7 @@ struct TranscriptDetailView: View {
 
                     // Metadata
                     HStack(spacing: 16) {
-                        metadataItem("Duration", value: formatDuration(transcript.duration))
+                        metadataItem("Duration", value: transcript.duration.compactDuration)
                         metadataItem("Words", value: "\(transcript.wordCount)")
                         metadataItem("WPM", value: String(format: "%.0f", transcript.wordsPerMinute))
                         metadataItem("Model", value: transcript.model)
@@ -94,11 +94,5 @@ struct TranscriptDetailView: View {
                 .font(AirScriptTheme.fontCaption2)
                 .foregroundStyle(AirScriptTheme.textSecondary)
         }
-    }
-
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let seconds = Int(duration)
-        if seconds < 60 { return "\(seconds)s" }
-        return "\(seconds / 60)m \(seconds % 60)s"
     }
 }

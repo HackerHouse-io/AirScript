@@ -11,7 +11,6 @@ struct HomePage: View {
     )
     private var recentTranscripts: [Transcript]
 
-    @Query private var allStats: [ProductivityStat]
     @State private var selectedTranscript: Transcript?
 
     var body: some View {
@@ -170,32 +169,32 @@ struct HomePage: View {
         }
     }
 
-    // MARK: - Computed Stats
+    // MARK: - Computed Stats (derived from transcripts so deletions are reflected)
 
-    private var todayStats: ProductivityStat? {
-        let today = Calendar.current.startOfDay(for: Date())
-        return allStats.first { Calendar.current.isDate($0.date, inSameDayAs: today) }
+    private var todayTranscripts: [Transcript] {
+        let startOfToday = Calendar.current.startOfDay(for: Date())
+        return recentTranscripts.filter { $0.createdAt >= startOfToday }
     }
 
     private var todayWords: Int {
-        todayStats?.wordsTranscribed ?? 0
+        todayTranscripts.reduce(0) { $0 + $1.wordCount }
     }
 
     private var todaySessions: Int {
-        todayStats?.sessionsCount ?? 0
+        todayTranscripts.count
     }
 
     private var weekWords: Int {
         let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
-        return allStats.filter { $0.date >= weekAgo }.reduce(0) { $0 + $1.wordsTranscribed }
+        return recentTranscripts.filter { $0.createdAt >= weekAgo }.reduce(0) { $0 + $1.wordCount }
     }
 
     private var totalSessions: Int {
-        allStats.reduce(0) { $0 + $1.sessionsCount }
+        recentTranscripts.count
     }
 
     private var timeSaved: String {
-        let totalWords = allStats.reduce(0) { $0 + $1.wordsTranscribed }
+        let totalWords = recentTranscripts.reduce(0) { $0 + $1.wordCount }
         let typingMinutes = Double(totalWords) / 45.0
         if typingMinutes < 1 { return "0m" }
         if typingMinutes < 60 { return "\(Int(typingMinutes))m" }

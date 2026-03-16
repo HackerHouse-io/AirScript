@@ -60,7 +60,7 @@ struct TranscriptRow: View {
                         .foregroundStyle(.primary)
 
                     HStack(spacing: 8) {
-                        Text(formatDuration(transcript.duration))
+                        Text(transcript.duration.compactDuration)
                             .font(AirScriptTheme.fontCaption2)
                             .foregroundStyle(AirScriptTheme.textSecondary)
                         Text("\(transcript.wordCount) words")
@@ -87,13 +87,6 @@ struct TranscriptRow: View {
         DeleteHoverButton(visible: rowHovered || reduceMotion, action: onDelete)
     }
 
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let seconds = Int(duration)
-        if seconds < 60 { return "\(seconds)s" }
-        let mins = seconds / 60
-        let secs = seconds % 60
-        return "\(mins)m \(secs)s"
-    }
 }
 
 // MARK: - Delete Hover Button

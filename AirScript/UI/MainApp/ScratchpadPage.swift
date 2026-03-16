@@ -159,7 +159,7 @@ struct ScratchpadPage: View {
 
                 Spacer()
 
-                Text(formatDuration(note.duration))
+                Text(note.duration.compactDuration)
                     .font(AirScriptTheme.fontMono)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
@@ -183,13 +183,6 @@ struct ScratchpadPage: View {
                 modelContext.delete(note)
             }
         }
-    }
-
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        if duration < 60 { return "\(Int(duration))s" }
-        let mins = Int(duration) / 60
-        let secs = Int(duration) % 60
-        return "\(mins)m \(secs)s"
     }
 }
 

@@ -3,7 +3,12 @@ import SwiftData
 
 struct HistoryView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Transcript.createdAt, order: .reverse) private var transcripts: [Transcript]
+    @Query(
+        filter: #Predicate<Transcript> { !$0.isArchived },
+        sort: \Transcript.createdAt,
+        order: .reverse
+    )
+    private var transcripts: [Transcript]
     @State private var searchText = ""
     @State private var selectedTranscript: Transcript?
     @State private var isSelectMode = false
@@ -11,27 +16,20 @@ struct HistoryView: View {
     @State private var showBulkDeleteConfirmation = false
 
     private var filteredTranscripts: [Transcript] {
-        var results = transcripts.filter { !$0.isArchived }
-        if !searchText.isEmpty {
-            results = results.filter {
-                $0.text.localizedCaseInsensitiveContains(searchText)
-            }
+        if searchText.isEmpty { return transcripts }
+        return transcripts.filter {
+            $0.text.localizedCaseInsensitiveContains(searchText)
         }
-        return results
-    }
-
-    private var allSelected: Bool {
-        let filtered = filteredTranscripts
-        return !filtered.isEmpty && filtered.allSatisfy { selectedTranscriptIDs.contains($0.id) }
     }
 
     var body: some View {
+        let filtered = filteredTranscripts
+        let allSelected = !filtered.isEmpty && filtered.allSatisfy { selectedTranscriptIDs.contains($0.id) }
+
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 20) {
                     PageHeader(title: "History", subtitle: "Past transcriptions")
-
-                    let filtered = filteredTranscripts
 
                     // Controls
                     HStack(spacing: 12) {
@@ -122,11 +120,7 @@ struct HistoryView: View {
         }
         .onKeyPress(.delete) {
             guard isSelectMode, !selectedTranscriptIDs.isEmpty else { return .ignored }
-            if selectedTranscriptIDs.count >= 2 {
-                showBulkDeleteConfirmation = true
-            } else {
-                performBulkDelete()
-            }
+            requestBulkDelete()
             return .handled
         }
     }
@@ -142,11 +136,7 @@ struct HistoryView: View {
             Spacer()
 
             Button(role: .destructive) {
-                if selectedTranscriptIDs.count >= 2 {
-                    showBulkDeleteConfirmation = true
-                } else {
-                    performBulkDelete()
-                }
+                requestBulkDelete()
             } label: {
                 Label("Delete Selected (\(selectedTranscriptIDs.count))", systemImage: "trash")
             }
@@ -189,6 +179,14 @@ struct HistoryView: View {
             }
             selectedTranscriptIDs.remove(transcript.id)
             modelContext.delete(transcript)
+        }
+    }
+
+    private func requestBulkDelete() {
+        if selectedTranscriptIDs.count >= 2 {
+            showBulkDeleteConfirmation = true
+        } else {
+            performBulkDelete()
         }
     }
 
