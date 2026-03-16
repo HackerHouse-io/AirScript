@@ -43,17 +43,18 @@ struct SoundBarsView: View {
 struct PulsingBorderView: View {
     let color: Color
     let isAnimating: Bool
+    var cornerRadius: CGFloat = 20
 
-    @State private var opacity: Double = 0.6
+    @State private var opacity: Double = 0.15
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 20)
-            .stroke(color, lineWidth: 2)
-            .opacity(isAnimating ? opacity : 0.6)
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .strokeBorder(color, lineWidth: 1.5)
+            .opacity(isAnimating ? opacity : 0)
             .onAppear {
                 if isAnimating {
-                    withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
-                        opacity = 1.0
+                    withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                        opacity = 0.5
                     }
                 }
             }

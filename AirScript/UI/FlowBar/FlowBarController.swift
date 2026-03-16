@@ -8,21 +8,25 @@ final class FlowBarController {
     private let logger = Logger.ui
 
     var state: FlowBarState = .idle {
-        didSet { updateView() }
+        didSet {
+            updateView()
+            if oldValue != state, panel?.isVisible == true { resizePanelToFit() }
+        }
     }
-    var audioLevel: Float = 0 {
-        didSet { updateView() }
-    }
+    var audioLevel: Float = 0
     var duration: TimeInterval = 0 {
         didSet { updateView() }
     }
     var partialTranscript: String = "" {
-        didSet { updateView() }
+        didSet {
+            updateView()
+            if oldValue.isEmpty != partialTranscript.isEmpty, panel?.isVisible == true { resizePanelToFit() }
+        }
     }
 
     func setup() {
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 300, height: 44),
+            contentRect: NSRect(x: 0, y: 0, width: 56, height: 160),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -33,7 +37,7 @@ final class FlowBarController {
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true
+        panel.hasShadow = false
         panel.isMovableByWindowBackground = true
 
         let flowBarView = FlowBarView(
@@ -48,11 +52,18 @@ final class FlowBarController {
         self.panel = panel
         self.hostingView = hostingView
 
-        positionAtBottomCenter()
+        let size = hostingView.fittingSize
+        if size.width > 0, size.height > 0 {
+            panel.setContentSize(size)
+        }
+
+        positionAtRightCenter()
         logger.info("Flow Bar initialized")
     }
 
     func show() {
+        resizePanelToFit()
+        positionAtRightCenter()
         panel?.orderFront(nil)
     }
 
@@ -72,10 +83,24 @@ final class FlowBarController {
         )
     }
 
-    private func positionAtBottomCenter() {
+    private func resizePanelToFit() {
+        guard let hostingView, let panel else { return }
+        let newSize = hostingView.fittingSize
+        guard newSize.width > 0, newSize.height > 0 else { return }
+        let oldFrame = panel.frame
+        let newOrigin = NSPoint(
+            x: oldFrame.maxX - newSize.width,
+            y: oldFrame.midY - newSize.height / 2
+        )
+        panel.setFrame(NSRect(origin: newOrigin, size: newSize), display: true)
+    }
+
+    private func positionAtRightCenter() {
         guard let screen = NSScreen.main, let panel else { return }
-        let x = screen.frame.midX - panel.frame.width / 2
-        let y = screen.visibleFrame.minY + 60
+        let margin = AirScriptTheme.Spacing.lg
+        let visibleFrame = screen.visibleFrame
+        let x = visibleFrame.maxX - panel.frame.width - margin
+        let y = visibleFrame.midY - panel.frame.height / 2
         panel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 }

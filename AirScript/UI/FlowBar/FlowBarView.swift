@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum FlowBarState {
+enum FlowBarState: Equatable {
     case idle
     case recordingPTT
     case recordingHandsFree
@@ -15,78 +15,132 @@ struct FlowBarView: View {
     let duration: TimeInterval
     let partialTranscript: String
 
+    private let cornerRadius = AirScriptTheme.Radius.xl
+
     var body: some View {
-        HStack(spacing: 10) {
-            SoundBarsView(
-                isAnimating: isRecording,
-                barCount: 5,
-                color: barsColor
-            )
-            .frame(width: 30, height: 20)
+        VStack(spacing: AirScriptTheme.Spacing.md) {
+            stateIconView
+
+            if isActive {
+                divider
+            }
+
+            if isRecording {
+                SoundBarsView(
+                    isAnimating: true,
+                    barCount: 5,
+                    color: stateColor
+                )
+                .frame(width: 26, height: 18)
+            }
 
             if state == .processing {
                 ProgressView()
-                    .scaleEffect(0.6)
-                    .frame(width: 16, height: 16)
+                    .scaleEffect(0.65)
+                    .frame(width: 18, height: 18)
+                    .tint(.secondary)
             }
 
             if isRecording {
                 Text(formatDuration(duration))
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(.primary.opacity(0.8))
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .contentTransition(.numericText())
+                    .animation(.easeInOut(duration: 0.2), value: Int(duration))
             }
 
             if !partialTranscript.isEmpty && state != .processing {
-                Text(partialTranscript)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .frame(maxWidth: 200)
-            }
-
-            if state == .command {
-                Image(systemName: "terminal.fill")
-                    .font(.caption)
-                    .foregroundStyle(AirScriptTheme.accent)
-                Text("Command")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.primary)
+                Image(systemName: "text.bubble.fill")
+                    .font(AirScriptTheme.fontCaption2)
+                    .foregroundStyle(stateColor.opacity(0.7))
+                    .transition(.scale.combined(with: .opacity))
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(.thickMaterial, in: Capsule())
-        .shadow(color: .black.opacity(0.15), radius: 8, y: 2)
-        .overlay(
-            PulsingBorderView(
-                color: borderColor,
-                isAnimating: isRecording
-            )
-            .clipShape(Capsule())
-        )
+        .padding(.horizontal, 10)
+        .padding(.vertical, 14)
+        .background { backgroundView }
+        .overlay { borderView }
+        .fixedSize()
+        .animation(AirScriptTheme.Anim.medium, value: state)
+        .animation(AirScriptTheme.Anim.medium, value: partialTranscript.isEmpty)
     }
+
+    // MARK: - Subviews
+
+    private var stateIconView: some View {
+        ZStack {
+            Circle()
+                .fill(stateColor.opacity(0.12))
+                .frame(width: 32, height: 32)
+
+            Image(systemName: stateIcon)
+                .font(AirScriptTheme.fontSectionHeader)
+                .foregroundStyle(stateColor)
+        }
+    }
+
+    private var divider: some View {
+        RoundedRectangle(cornerRadius: 0.5)
+            .fill(.quaternary)
+            .frame(width: 16, height: 1)
+    }
+
+    private var backgroundView: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .fill(.regularMaterial)
+
+            if isRecording {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(stateColor.opacity(0.05))
+            }
+        }
+        .airShadow(.card)
+    }
+
+    private var borderView: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .strokeBorder(.white.opacity(0.1), lineWidth: 0.5)
+
+            if isRecording {
+                PulsingBorderView(
+                    color: stateColor,
+                    isAnimating: true,
+                    cornerRadius: cornerRadius
+                )
+            }
+        }
+    }
+
+    // MARK: - State
 
     private var isRecording: Bool {
         state == .recordingPTT || state == .recordingHandsFree || state == .command
     }
 
-    private var barsColor: Color {
+    private var isActive: Bool {
+        isRecording || state == .processing
+    }
+
+    private var stateColor: Color {
         switch state {
-        case .recordingPTT: AirScriptTheme.statusError
-        case .recordingHandsFree: .primary
+        case .recordingPTT: AirScriptTheme.accent
+        case .recordingHandsFree: AirScriptTheme.statusListening
         case .command: AirScriptTheme.accent
-        default: .gray
+        case .error: AirScriptTheme.statusWarning
+        default: .secondary
         }
     }
 
-    private var borderColor: Color {
+    private var stateIcon: String {
         switch state {
-        case .recordingPTT: AirScriptTheme.statusError
-        case .recordingHandsFree: .primary
-        case .command: AirScriptTheme.accent
-        case .error: AirScriptTheme.accentWarm
-        default: .clear
+        case .idle: "mic.fill"
+        case .recordingPTT: "mic.fill"
+        case .recordingHandsFree: "waveform"
+        case .processing: "sparkles"
+        case .command: "terminal.fill"
+        case .error: "exclamationmark.triangle.fill"
         }
     }
 

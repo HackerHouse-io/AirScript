@@ -12,6 +12,8 @@ struct AirScriptTheme {
     static let accentWarm = Color.orange
     static let statusSuccess = Color.green
     static let statusError = Color.red
+    static let statusListening = Color(red: 0.20, green: 0.72, blue: 0.65)
+    static let statusWarning = Color(red: 0.96, green: 0.65, blue: 0.14)
 
     // MARK: - Text (system adaptive)
     static let textPrimary = Color(nsColor: .labelColor)
@@ -57,6 +59,7 @@ struct AirScriptTheme {
         static let sm: CGFloat = 6
         static let md: CGFloat = 10
         static let lg: CGFloat = 14
+        static let xl: CGFloat = 20
     }
 
     // MARK: - Animations
