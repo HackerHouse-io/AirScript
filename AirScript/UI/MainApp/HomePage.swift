@@ -12,6 +12,7 @@ struct HomePage: View {
     private var recentTranscripts: [Transcript]
 
     @Query private var allStats: [ProductivityStat]
+    @State private var selectedTranscript: Transcript?
 
     var body: some View {
         ScrollView {
@@ -58,6 +59,12 @@ struct HomePage: View {
                 recentActivitySection
             }
             .padding(.bottom, 8)
+        }
+        .sheet(item: $selectedTranscript) { transcript in
+            TranscriptDetailView(transcript: transcript) {
+                selectedTranscript = nil
+            }
+            .frame(minWidth: 500, minHeight: 400)
         }
     }
 
@@ -145,58 +152,20 @@ struct HomePage: View {
                     LazyVStack(spacing: 0) {
                         ForEach(Array(recentTranscripts.prefix(20).enumerated()), id: \.element.id) { index, transcript in
                             if index > 0 { Divider() }
-                            HoverRow {
-                                transcriptRowContent(transcript)
-                            }
+                            TranscriptRow(
+                                transcript: transcript,
+                                onTap: { selectedTranscript = transcript },
+                                onDelete: {
+                                    withAnimation {
+                                        modelContext.delete(transcript)
+                                    }
+                                }
+                            )
                             .staggeredAppear(index: index)
                         }
                     }
                 }
                 .padding(.horizontal)
-            }
-        }
-    }
-
-    private func transcriptRowContent(_ transcript: Transcript) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: transcript.wasCommand ? "terminal" : "text.quote")
-                .font(AirScriptTheme.fontSubtitle)
-                .foregroundStyle(AirScriptTheme.accentMuted)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(transcript.text)
-                    .font(AirScriptTheme.fontBodyPrimary)
-                    .lineLimit(1)
-
-                HStack(spacing: 8) {
-                    if let appName = transcript.appName {
-                        StatusBadge(text: appName, style: .mono)
-                    }
-                    Text(formatDuration(transcript.duration))
-                        .font(AirScriptTheme.fontCaption2)
-                        .foregroundStyle(AirScriptTheme.textSecondary)
-                    Text("\(transcript.wordCount) words")
-                        .font(AirScriptTheme.fontCaption2)
-                        .foregroundStyle(AirScriptTheme.textSecondary)
-                }
-            }
-
-            Spacer()
-
-            Text(transcript.createdAt, style: .relative)
-                .font(AirScriptTheme.fontCaption2)
-                .foregroundStyle(AirScriptTheme.textTertiary)
-        }
-        .contentShape(Rectangle())
-        .contextMenu {
-            Button("Copy") {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(transcript.text, forType: .string)
-            }
-            Divider()
-            Button("Delete", role: .destructive) {
-                modelContext.delete(transcript)
             }
         }
     }
@@ -231,14 +200,5 @@ struct HomePage: View {
         if typingMinutes < 1 { return "0m" }
         if typingMinutes < 60 { return "\(Int(typingMinutes))m" }
         return "\(Int(typingMinutes / 60))h \(Int(typingMinutes.truncatingRemainder(dividingBy: 60)))m"
-    }
-
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        if duration < 60 {
-            return "\(Int(duration))s"
-        }
-        let mins = Int(duration) / 60
-        let secs = Int(duration) % 60
-        return "\(mins)m \(secs)s"
     }
 }

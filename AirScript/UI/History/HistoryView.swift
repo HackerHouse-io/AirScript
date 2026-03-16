@@ -6,6 +6,9 @@ struct HistoryView: View {
     @Query(sort: \Transcript.createdAt, order: .reverse) private var transcripts: [Transcript]
     @State private var searchText = ""
     @State private var selectedTranscript: Transcript?
+    @State private var isSelectMode = false
+    @State private var selectedTranscriptIDs: Set<UUID> = []
+    @State private var showBulkDeleteConfirmation = false
 
     private var filteredTranscripts: [Transcript] {
         var results = transcripts.filter { !$0.isArchived }
@@ -15,6 +18,11 @@ struct HistoryView: View {
             }
         }
         return results
+    }
+
+    private var allSelected: Bool {
+        let filtered = filteredTranscripts
+        return !filtered.isEmpty && filtered.allSatisfy { selectedTranscriptIDs.contains($0.id) }
     }
 
     var body: some View {
@@ -29,6 +37,28 @@ struct HistoryView: View {
                     HStack(spacing: 12) {
                         AirSearchBar(text: $searchText, placeholder: "Search transcripts...")
                         Spacer()
+
+                        if isSelectMode {
+                            controlBarButton(allSelected ? "Deselect All" : "Select All") {
+                                if allSelected {
+                                    selectedTranscriptIDs.removeAll()
+                                } else {
+                                    selectedTranscriptIDs = Set(filtered.map(\.id))
+                                }
+                            }
+                        }
+
+                        if !filtered.isEmpty {
+                            controlBarButton(isSelectMode ? "Done" : "Select") {
+                                withAnimation(AirScriptTheme.Anim.fast) {
+                                    isSelectMode.toggle()
+                                    if !isSelectMode {
+                                        selectedTranscriptIDs.removeAll()
+                                    }
+                                }
+                            }
+                        }
+
                         Text("\(filtered.count) transcripts")
                             .font(AirScriptTheme.fontCaption)
                             .foregroundStyle(AirScriptTheme.textTertiary)
@@ -48,9 +78,14 @@ struct HistoryView: View {
                             LazyVStack(spacing: 0) {
                                 ForEach(Array(filtered.enumerated()), id: \.element.id) { index, transcript in
                                     if index > 0 { Divider() }
-                                    HoverRow {
-                                        transcriptRowContent(transcript)
-                                    }
+                                    TranscriptRow(
+                                        transcript: transcript,
+                                        isSelectMode: isSelectMode,
+                                        isSelected: selectedTranscriptIDs.contains(transcript.id),
+                                        onTap: { selectedTranscript = transcript },
+                                        onDelete: { deleteSingle(transcript) },
+                                        onToggleSelection: { toggleSelection(transcript) }
+                                    )
                                     .staggeredAppear(index: index)
                                 }
                             }
@@ -58,76 +93,116 @@ struct HistoryView: View {
                         .padding(.horizontal)
                     }
                 }
-                .padding(.bottom, 8)
+                .padding(.bottom, isSelectMode && !selectedTranscriptIDs.isEmpty ? 64 : 8)
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            if isSelectMode && !selectedTranscriptIDs.isEmpty {
+                bulkActionBar
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(AirScriptTheme.Anim.medium, value: selectedTranscriptIDs.isEmpty)
         .sheet(item: $selectedTranscript) { transcript in
             TranscriptDetailView(transcript: transcript) {
                 selectedTranscript = nil
             }
             .frame(minWidth: 500, minHeight: 400)
         }
+        .alert("Delete \(selectedTranscriptIDs.count) Transcripts?", isPresented: $showBulkDeleteConfirmation) {
+            Button("Delete \(selectedTranscriptIDs.count)", role: .destructive) {
+                performBulkDelete()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("These transcripts will be permanently deleted.")
+        }
+        .onChange(of: searchText) {
+            selectedTranscriptIDs.removeAll()
+        }
+        .onKeyPress(.delete) {
+            guard isSelectMode, !selectedTranscriptIDs.isEmpty else { return .ignored }
+            if selectedTranscriptIDs.count >= 2 {
+                showBulkDeleteConfirmation = true
+            } else {
+                performBulkDelete()
+            }
+            return .handled
+        }
     }
 
-    private func transcriptRowContent(_ transcript: Transcript) -> some View {
-        Button {
-            selectedTranscript = transcript
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: transcript.wasCommand ? "terminal" : "text.quote")
-                    .font(AirScriptTheme.fontSubtitle)
-                    .foregroundStyle(transcript.wasCommand ? AirScriptTheme.accentWarm : AirScriptTheme.accentMuted)
-                    .frame(width: 24)
+    // MARK: - Bulk Action Bar
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(transcript.text)
-                        .font(AirScriptTheme.fontBodyPrimary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                        .foregroundStyle(.primary)
+    private var bulkActionBar: some View {
+        HStack {
+            Text("\(selectedTranscriptIDs.count) selected")
+                .font(AirScriptTheme.fontBodyMedium)
+                .foregroundStyle(AirScriptTheme.textSecondary)
 
-                    HStack(spacing: 8) {
-                        Text(formatDuration(transcript.duration))
-                            .font(AirScriptTheme.fontCaption2)
-                            .foregroundStyle(AirScriptTheme.textSecondary)
-                        Text("\(transcript.wordCount) words")
-                            .font(AirScriptTheme.fontCaption2)
-                            .foregroundStyle(AirScriptTheme.textSecondary)
-                        if let appName = transcript.appName {
-                            StatusBadge(text: appName, style: .mono)
-                        }
-                    }
+            Spacer()
+
+            Button(role: .destructive) {
+                if selectedTranscriptIDs.count >= 2 {
+                    showBulkDeleteConfirmation = true
+                } else {
+                    performBulkDelete()
                 }
-
-                Spacer()
-
-                Text(transcript.createdAt, style: .relative)
-                    .font(AirScriptTheme.fontCaption2)
-                    .foregroundStyle(AirScriptTheme.textTertiary)
+            } label: {
+                Label("Delete Selected (\(selectedTranscriptIDs.count))", systemImage: "trash")
             }
-            .contentShape(Rectangle())
+            .buttonStyle(.bordered)
+            .tint(.red)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial)
+    }
+
+    // MARK: - Control Bar Button
+
+    private func controlBarButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(AirScriptTheme.fontBodyPrimary)
+                .foregroundStyle(AirScriptTheme.accent)
         }
         .buttonStyle(.plain)
-        .contextMenu {
-            Button("Copy") {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(transcript.text, forType: .string)
+        .padding(.horizontal, AirScriptTheme.Spacing.md)
+        .padding(.vertical, AirScriptTheme.Spacing.sm)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: AirScriptTheme.Radius.sm, style: .continuous))
+    }
+
+    // MARK: - Actions
+
+    private func toggleSelection(_ transcript: Transcript) {
+        if selectedTranscriptIDs.contains(transcript.id) {
+            selectedTranscriptIDs.remove(transcript.id)
+        } else {
+            selectedTranscriptIDs.insert(transcript.id)
+        }
+    }
+
+    private func deleteSingle(_ transcript: Transcript) {
+        withAnimation {
+            if selectedTranscript == transcript {
+                selectedTranscript = nil
             }
-            Divider()
-            Button("Delete", role: .destructive) {
+            selectedTranscriptIDs.remove(transcript.id)
+            modelContext.delete(transcript)
+        }
+    }
+
+    private func performBulkDelete() {
+        withAnimation {
+            let idsToDelete = selectedTranscriptIDs
+            for transcript in transcripts where idsToDelete.contains(transcript.id) {
                 if selectedTranscript == transcript {
                     selectedTranscript = nil
                 }
                 modelContext.delete(transcript)
             }
+            selectedTranscriptIDs.removeAll()
+            isSelectMode = false
         }
-    }
-
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let seconds = Int(duration)
-        if seconds < 60 { return "\(seconds)s" }
-        let mins = seconds / 60
-        let secs = seconds % 60
-        return "\(mins)m \(secs)s"
     }
 }
